@@ -1,0 +1,61 @@
+{
+  "name": "voice-agent-launchpad",
+  "description": "",
+  "version": "1.0.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nusic-fm/voice-agent-launchpad.git"
+  },
+  "author": {
+    "name": "Logesh Rajappan",
+    "email": "logesh.r24@gmail.com"
+  },
+  "license": "MIT",
+  "licenseUrl": "http://www.opensource.org/licenses/mit-license.php",
+  "keywords": [
+    "react",
+    "vite",
+    "typescript"
+  ],
+  "scripts": {
+    "dev": "vite --config vite/config.dev.mjs --port 3000 --host 0.0.0.0",
+    "build": "vite build --config vite/config.prod.mjs"
+  },
+  "dependencies": {
+    "@emotion/react": "^11.11.4",
+    "@emotion/styled": "^11.11.5",
+    "@mui/icons-material": "^5.16.4",
+    "@mui/lab": "^5.0.0-alpha.172",
+    "@mui/material": "^5.16.4",
+    "@types/styled-components": "^5.1.34",
+    "@types/three": "^0.173.0",
+    "axios": "^1.7.3",
+    "crypto-js": "^4.2.0",
+    "firebase": "^10.12.3",
+    "framer-motion": "^11.11.9",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-firebase-hooks": "^5.1.1",
+    "react-router-dom": "^6.26.1",
+    "styled-components": "^6.1.15",
+    "three": "^0.173.0",
+    "webfontloader": "^1.6.28"
+  },
+  "devDependencies": {
+    "@types/crypto-js": "^4.2.2",
+    "@types/lodash": "^4.17.6",
+    "@types/node": "^22.8.6",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "@types/webfontloader": "^1.6.38",
+    "@typescript-eslint/eslint-plugin": "^7.13.1",
+    "@typescript-eslint/parser": "^7.13.1",
+    "@vitejs/plugin-react": "^4.3.1",
+    "eslint": "^8.57.0",
+    "eslint-plugin-react-hooks": "^4.6.2",
+    "eslint-plugin-react-refresh": "^0.4.7",
+    "terser": "^5.28.1",
+    "typescript": "^5.2.2",
+    "vite": "^5.3.1"
+  }
+}
