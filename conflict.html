@@ -38,6 +38,7 @@
             overflow: hidden;
             font-family: 'Inter', sans-serif;
             color: #e0e0e0;
+            user-select: none; /* Prevent text selection globally */
         }
 
         .metadata-panel {
@@ -111,7 +112,7 @@
         .node-label {
             position: fixed;
             font-size: 1.8em;
-            pointer-events: none;
+            pointer-events: none !important; /* Ensure labels don't interfere */
             text-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
             transform: translate(-50%, -50%);
             z-index: 1000;
@@ -207,6 +208,7 @@
             margin-bottom: 1rem;
             z-index: 20;
             position: relative;
+            user-select: text; /* Allow text selection only in specific areas */
         }
 
         .message {
@@ -231,6 +233,7 @@
             z-index: 31;
             display: flex;
             gap: 0.5rem;
+            user-select: text; /* Allow text selection only in specific areas */
         }
 
         .chat-input input {
@@ -278,7 +281,7 @@
             left: 0;
             width: 100% !important;
             height: 100% !important;
-            cursor: pointer;
+            cursor: pointer !important; /* Force pointer cursor */
         }
 
         .face-container {
@@ -558,6 +561,8 @@
             width: 100%;
             aspect-ratio: 16/9;
             overflow: hidden;
+            background: #000;
+            border-radius: 8px 8px 0 0;
         }
 
         .video-thumbnail {
@@ -669,6 +674,17 @@
         .video-grid::-webkit-scrollbar-thumb {
             background: var(--neon-teal);
             border-radius: 4px;
+        }
+
+        .audio-clip-option audio {
+            display: none;
+        }
+
+        /* Allow text selection only in specific areas */
+        .chat-messages, 
+        .chat-input input,
+        .metadata-panel {
+            user-select: text;
         }
     </style>
 </head>
@@ -1222,8 +1238,8 @@ function sendMessage() {
                 option.innerHTML = `
                     <div class="video-preview">
                         <img class="video-thumbnail" 
-                             src="https://i.ytimg.com/vi/${video.id}/hqdefault.jpg" 
-                             alt="${video.title}">
+                            src="https://i.ytimg.com/vi/${video.id}/hqdefault.jpg" 
+                            alt="${video.title}">
                         <div class="video-duration">${video.duration}</div>
                     </div>
                     <div class="video-info">
@@ -1256,9 +1272,9 @@ function sendMessage() {
                         
                         // Example audio clips - replace with actual clips from the video
                         const audioClips = [
-                            { id: 1, label: 'Voice 1', url: 'path/to/clip1.mp3' },
-                            { id: 2, label: 'Voice 2', url: 'path/to/clip2.mp3' },
-                            { id: 3, label: 'Voice 3', url: 'path/to/clip3.mp3' }
+                            { id: 1, label: 'Voice 1', url: 'audio/sample1.mp3' },
+                            { id: 2, label: 'Voice 2', url: 'audio/sample2.mp3' },
+                            { id: 3, label: 'Voice 3', url: 'audio/sample3.mp3' }
                         ];
 
                         audioClips.forEach(clip => {
@@ -1274,8 +1290,31 @@ function sendMessage() {
                             const audio = clipOption.querySelector('audio');
                             
                             playButton.addEventListener('click', (e) => {
-                                e.stopPropagation();  // Prevent option selection when clicking play
-                                audio.play();
+                                e.stopPropagation();
+                                
+                                // Stop all other audio clips
+                                document.querySelectorAll('.audio-clip-option audio').forEach(a => {
+                                    if (a !== audio) {
+                                        a.pause();
+                                        a.currentTime = 0;
+                                        a.closest('.audio-clip-option').querySelector('.play-button').textContent = '▶';
+                                    }
+                                });
+                                
+                                // Toggle play/pause
+                                if (audio.paused) {
+                                    audio.play();
+                                    playButton.textContent = '⏸';
+                                } else {
+                                    audio.pause();
+                                    audio.currentTime = 0;
+                                    playButton.textContent = '▶';
+                                }
+                            });
+
+                            // Reset button when audio ends
+                            audio.addEventListener('ended', () => {
+                                playButton.textContent = '▶';
                             });
 
                             clipOption.addEventListener('click', () => {
