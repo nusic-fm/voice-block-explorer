@@ -686,6 +686,50 @@
         .metadata-panel {
             user-select: text;
         }
+
+        .node-glow {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            pointer-events: none;
+            background: radial-gradient(circle at center,
+                rgba(0, 255, 255, 0.8) 0%,
+                rgba(0, 255, 255, 0.4) 30%,
+                rgba(0, 255, 255, 0) 70%
+            );
+            filter: blur(8px);
+            transform: scale(2);
+            transition: opacity 0.3s ease;
+            z-index: 6;
+        }
+
+        @keyframes nodePulse {
+            0% { transform: scale(2); opacity: 0.8; }
+            50% { transform: scale(3); opacity: 1; }
+            100% { transform: scale(2); opacity: 0.8; }
+        }
+
+        .audio-visualizer {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: 200px;
+            height: 200px;
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 2px;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            z-index: 6;
+        }
+
+        .visualizer-particle {
+            background: rgba(0, 255, 255, 0.3);
+            border-radius: 2px;
+            transition: transform 0.1s ease;
+        }
     </style>
 </head>
 <body>
@@ -1710,7 +1754,7 @@ class KrakenEffect {
             const chatMessages = document.getElementById('chatMessages');
             const blockchainMsg = document.createElement('div');
             blockchainMsg.className = 'message bot-message';
-            blockchainMsg.textContent = `Here is the immutable audio dataset for your voice agent, this is instantiated to the Base blockchain and your agent will mint one of these pieces of audio as an NFT every time it processes a Text To Speech (TTS) request...`;
+            blockchainMsg.textContent = `Here is the audio dataset for your voice agent, this will be instantiated to the Base blockchain and your agent will mint one of these pieces of audio as an NFT every time it processes a Text To Speech (TTS) request to create an immutable cryptographic record...`;
             chatMessages.appendChild(blockchainMsg);
             
             // Add TTS prompt after a short delay
@@ -1730,7 +1774,12 @@ class KrakenEffect {
         this.mode = 'loading';
         this.loadingProgress = 0;
         
-        // Show percentage display
+        // Keep particles visible during transition
+        this.particles.forEach(particle => {
+            particle.element.style.opacity = '0.8';  // Start with high opacity
+        });
+        
+        // Show percentage display with a fade
         this.percentageDisplay.style.opacity = '1';
         this.percentageDisplay.textContent = '0%';
         
@@ -1738,18 +1787,15 @@ class KrakenEffect {
         const radius = Math.min(this.width, this.height) * 0.2;
         const totalParticles = this.particles.length;
         
-        // Assign target positions more organically
+        // Assign target positions using current positions as starting points
         this.particles.forEach((particle, index) => {
-            // Calculate final circle position
             const angle = (index / totalParticles) * Math.PI * 2;
             const targetX = this.centerX + Math.cos(angle) * radius;
             const targetY = this.centerY + Math.sin(angle) * radius;
             
-            // Add some randomness to starting positions
-            const randomRadius = radius * (1 + Math.random() * 0.5);
-            const randomAngle = Math.random() * Math.PI * 2;
-            const startX = this.centerX + Math.cos(randomAngle) * randomRadius;
-            const startY = this.centerY + Math.sin(randomAngle) * randomRadius;
+            // Use current position as starting point
+            const startX = particle.baseX;
+            const startY = particle.baseY;
             
             Object.assign(particle, {
                 targetX,
@@ -1758,12 +1804,12 @@ class KrakenEffect {
                 startY,
                 angle,
                 assembleProgress: 0,
-                assembleSpeed: 0.01 + Math.random() * 0.02
+                assembleSpeed: 0.02 + Math.random() * 0.01  // Slightly slower for smoother transition
             });
         });
 
         const loadingInterval = setInterval(() => {
-            this.loadingProgress += 0.7;
+            this.loadingProgress += 0.8;  // Slightly slower progress
             
             // Update percentage display
             const percentage = Math.min(100, Math.floor(this.loadingProgress));
@@ -1771,8 +1817,6 @@ class KrakenEffect {
             
             if (this.loadingProgress >= 100) {
                 clearInterval(loadingInterval);
-                
-                // Fade out percentage display
                 this.percentageDisplay.style.opacity = '0';
                 
                 setTimeout(() => {
