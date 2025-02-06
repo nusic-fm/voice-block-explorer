@@ -57,6 +57,7 @@
                 rgba(0, 255, 255, 0.15),
                 rgba(0, 255, 255, 0.05)
             ) 1;
+            z-index: 35;
         }
 
         .metadata-header {
@@ -115,6 +116,7 @@
             transform: translate(-50%, -50%);
             z-index: 1000;
             color: #00ffff;
+            user-select: none;
         }
 
         .audio-node {
@@ -159,7 +161,7 @@
             padding: 1.5rem;
             color: var(--neon-teal);
             overflow-y: auto;
-            z-index: 1;
+            z-index: 30;
         }
 
         .left-panel {
@@ -178,17 +180,19 @@
             background: rgba(0, 0, 0, 0.3);
             border-radius: 8px;
             border: 1px solid rgba(0, 255, 255, 0.1);
+            box-sizing: border-box;
         }
 
         .chart-container {
             width: 100%;
             height: 200px;
-            margin: 1rem 0;
+            margin: 0.5rem 0;
             position: relative;
             border: 1px solid rgba(0, 255, 255, 0.2);
             border-radius: 4px;
-            padding: 1rem;
+            padding: 0.5rem;
             background: rgba(0, 0, 0, 0.3);
+            box-sizing: border-box;
         }
 
         .chat-container {
@@ -201,6 +205,8 @@
             flex-grow: 1;
             overflow-y: auto;
             margin-bottom: 1rem;
+            z-index: 20;
+            position: relative;
         }
 
         .message {
@@ -221,6 +227,8 @@
         }
 
         .chat-input {
+            position: relative;
+            z-index: 31;
             display: flex;
             gap: 0.5rem;
         }
@@ -250,13 +258,14 @@
 
         .visualization-container {
             position: fixed;
-            left: 300px;
-            right: 300px;
             top: 0;
-            bottom: 0;
-            z-index: 0;
-            opacity: 0;
-            transition: opacity 1s ease;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 5;
+            pointer-events: all;
+            user-select: none;
+            cursor: default;
         }
 
         .visualization-container.visible {
@@ -269,6 +278,7 @@
             left: 0;
             width: 100% !important;
             height: 100% !important;
+            cursor: pointer;
         }
 
         .face-container {
@@ -457,6 +467,209 @@
                     0 0 90px rgba(255, 255, 255, 0.5);
             }
         }
+
+        .choice-btn {
+            background: rgba(0, 255, 255, 0.1);
+            border: 1px solid var(--neon-teal);
+            color: var(--neon-teal);
+            padding: 0.5rem 1rem;
+            margin: 0.3rem 0;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            text-align: left;
+        }
+
+        .choice-btn:hover {
+            background: rgba(0, 255, 255, 0.2);
+            transform: translateX(5px);
+        }
+
+        .video-grid {
+            position: fixed;
+            left: 350px;
+            right: 350px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2rem;
+            padding: 3rem;
+            z-index: 35;
+            max-height: 85vh;
+            overflow-y: auto;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--subtle-border);
+        }
+
+        .audio-clips-grid {
+            position: fixed;
+            left: 350px;
+            right: 350px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            justify-content: center;
+            gap: 3rem;
+            padding: 3rem;
+            z-index: 35;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--subtle-border);
+        }
+
+        .audio-clip-option {
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid var(--neon-teal);
+            border-radius: 8px;
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 200px;
+        }
+
+        .audio-clip-option:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.2);
+            border-color: rgba(0, 255, 255, 0.8);
+        }
+
+        .video-option {
+            width: 100%;
+            max-width: 280px;
+            margin: 0 auto;
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid var(--neon-teal);
+            border-radius: 8px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .video-preview {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 16/9;
+            overflow: hidden;
+        }
+
+        .video-thumbnail {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+
+        .video-duration {
+            position: absolute;
+            bottom: 8px;
+            right: 8px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 2px 4px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+        }
+
+        .video-info {
+            padding: 1rem;
+            color: var(--neon-teal);
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .video-title {
+            font-size: 1.1rem;
+            font-weight: 500;
+        }
+
+        .video-description {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            line-height: 1.4;
+        }
+
+        .video-option:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.2);
+            border-color: rgba(0, 255, 255, 0.8);
+        }
+
+        .video-option:hover .video-thumbnail {
+            transform: scale(1.05);
+        }
+
+        .loading-percentage {
+            position: fixed;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            color: var(--neon-teal);
+            font-size: 3rem;
+            font-weight: bold;
+            text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+            z-index: 11;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .play-button {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: rgba(0, 255, 255, 0.1);
+            border: 2px solid var(--neon-teal);
+            color: var(--neon-teal);
+            font-size: 32px;
+            cursor: pointer;
+            margin: 1rem auto;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .play-button:hover {
+            background: rgba(0, 255, 255, 0.2);
+            transform: scale(1.1);
+        }
+
+        .clip-label {
+            color: var(--neon-teal);
+            margin-top: 1.5rem;
+            font-size: 1.2rem;
+            font-weight: 500;
+        }
+
+        .side-panel {
+            z-index: 30;
+        }
+
+        /* Add custom scrollbar for better visibility */
+        .video-grid::-webkit-scrollbar {
+            width: 8px;
+            margin-right: 4px;
+        }
+
+        .video-grid::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 4px;
+            margin: 4px;
+        }
+
+        .video-grid::-webkit-scrollbar-thumb {
+            background: var(--neon-teal);
+            border-radius: 4px;
+        }
     </style>
 </head>
 <body>
@@ -513,7 +726,7 @@
 
     <div class="side-panel right-panel">
         <div class="chat-container">
-            <h2>Voice Agent Launcher</h2>L
+            <h2>Voice Agent Launcher</h2>
             <div class="chat-messages" id="chatMessages">
                 <div class="message bot-message">
                     Welcome! Let's launch your AI voice agent. What's the name of the voice you wanna use?
@@ -527,6 +740,8 @@
     </div>
 
     <div class="kraken-container"></div>
+
+    <div class="loading-percentage">0%</div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
@@ -549,11 +764,24 @@ class AudioNode {
                 color: 0x00ffff,
                 transparent: true,
                 opacity: 0,
-                depthTest: false,
-                depthWrite: false,
-                side: THREE.DoubleSide
+                depthTest: false,  // Disable depth testing
+                depthWrite: false, // Disable depth writing
+                side: THREE.DoubleSide,
+                renderOrder: 1     // Ensure it renders on top
             })
         );
+        
+        // Add a larger invisible collision mesh for better click detection
+        this.clickMesh = new THREE.Mesh(
+            new THREE.SphereGeometry(1, 8, 8),
+            new THREE.MeshBasicMaterial({
+                visible: false,
+                depthTest: false,
+                depthWrite: false
+            })
+        );
+        this.clickMesh.position.copy(position);
+        this.clickMesh.userData = this.mesh.userData;
         
         this.mesh.lookAt(new THREE.Vector3(0, 0, 1));
         
@@ -594,6 +822,12 @@ class AudioNode {
         this.label.textContent = data.emoji;
         this.label.style.opacity = '0';
         document.body.appendChild(this.label);
+
+        // Add click handling
+        this.mesh.userData = {
+            type: 'audioNode',
+            metadata: data
+        };
     }
 
     update(deltaTime) {
@@ -615,7 +849,7 @@ class AudioNode {
             
             const t = this.animationProgress;
             const eased = t < 0.5 
-                ? 4 * t * t * t 
+                ? 4 * t * t 
                 : 1 + Math.sin((t - 0.5) * Math.PI) * Math.exp(-(t - 0.5) * 2.5) * 0.35;
             
             const progress = eased;
@@ -639,6 +873,10 @@ class AudioNode {
             this.mesh.material.opacity = 0.25 * fadeProgress;  // Reduced opacity for subtler effect
             this.label.style.opacity = fadeProgress;
         }
+
+        // Update clickMesh position to match visible mesh
+        this.clickMesh.position.copy(this.mesh.position);
+        this.clickMesh.lookAt(camera.position);
     }
 
     updateLabelPosition() {
@@ -658,38 +896,9 @@ class AudioNode {
     }
 
     onClick() {
-        if (!this.embedUrl) return;
-        
-        const modal = document.createElement('div');
-        modal.style.position = 'fixed';
-        modal.style.top = '0';
-        modal.style.left = '0';
-        modal.style.width = '100%';
-        modal.style.height = '100%';
-        modal.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
-        modal.style.display = 'flex';
-        modal.style.justifyContent = 'center';
-        modal.style.alignItems = 'center';
-        modal.style.zIndex = '1000';
-
-        const iframe = document.createElement('iframe');
-        iframe.width = '800';
-        iframe.height = '450';
-        iframe.src = this.embedUrl;
-        iframe.frameBorder = '0';
-        iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
-        iframe.allowFullscreen = true;
-
-        modal.appendChild(iframe);
-        console.log('Opening video at URL:', iframe.src); // Debug log
-
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) {
-                document.body.removeChild(modal);
-            }
-        });
-
-        document.body.appendChild(modal);
+        if (this.mesh.userData.metadata) {
+            showMetadataPanel(this.mesh.userData.metadata);
+        }
     }
 }
 
@@ -733,7 +942,7 @@ async function init() {
             audioNodes.push(node);
         });
 
-        document.getElementById('ui').textContent = `Voice Agent Sphere Ready`;
+        document.getElementById('ui').textContent = `Audio Dataset Prepared for Blockchain Instantiation`;
         // Make visualization visible
         document.querySelector('.visualization-container').classList.add('visible');
 
@@ -745,78 +954,101 @@ async function init() {
     // Adjust camera and controls
     camera.position.z = 40;
     controls = new THREE.OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.05;
     controls.autoRotate = true;
     controls.autoRotateSpeed = 0.5;
     controls.minDistance = 30;
     controls.maxDistance = 80;
-    
-    // Add this to make circles always face camera
-    scene.onBeforeRender = () => {
-        audioNodes.forEach(node => {
-            node.mesh.lookAt(camera.position);
-        });
-    };
+    controls.enabled = true;  // Make sure controls are enabled
 
+    // Add raycaster for clicking nodes
     const raycaster = new THREE.Raycaster();
+    raycaster.params.Points.threshold = 1;
     const mouse = new THREE.Vector2();
     
-    renderer.domElement.addEventListener('click', (e) => {
-        if (!audioContextInitialized) {
-            audioContextInitialized = true;
-            const context = new (window.AudioContext || window.webkitAudioContext)();
-            context.resume();
-        }
-
+    renderer.domElement.addEventListener('click', (event) => {
+        // Calculate mouse position in normalized device coordinates
         const rect = renderer.domElement.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
-        
-        mouse.x = (x / rect.width) * 2 - 1;
-        mouse.y = -(y / rect.height) * 2 + 1;
-        
+        mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+        mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+        // Update the picking ray with the camera and mouse position
         raycaster.setFromCamera(mouse, camera);
-        const intersects = raycaster.intersectObjects(audioNodes.map(n => n.mesh));
-        
+
+        // Calculate objects intersecting the picking ray
+        const intersects = raycaster.intersectObjects([
+            ...audioNodes.map(node => node.mesh),
+            ...audioNodes.map(node => node.clickMesh)
+        ]);
+
         if (intersects.length > 0) {
-            const node = audioNodes.find(n => n.mesh === intersects[0].object);
-            showMetadataPanel(node, e.clientX, e.clientY);
+            const node = audioNodes.find(n => 
+                n.mesh === intersects[0].object || 
+                n.clickMesh === intersects[0].object
+            );
+            if (node && node.data) {
+                showMetadataPanel(node.data, event);
+            }
         }
     });
 
     animate();
 }
 
-function showMetadataPanel(node, x, y) {
-    if (currentPanel) currentPanel.remove();
+function showMetadataPanel(metadata, event) {
+    if (currentPanel) {
+        currentPanel.remove();
+    }
 
     const template = document.getElementById('metadata-template');
-    const panel = template.content.cloneNode(true).querySelector('.metadata-panel');
+    const panel = template.content.cloneNode(true).children[0];
     
-    panel.querySelector('.title').textContent = `${node.data.emoji} ${node.data.name}`;
-    panel.querySelector('.duration').textContent = node.data.duration;
+    // Fill in metadata
+    panel.querySelector('.title').textContent = metadata.name;
+    panel.querySelector('.duration').textContent = metadata.duration;
     
-    const audio = panel.querySelector('audio');
-    audio.src = `audio/${node.data.filename}`;
-
-    const videoId = extractYoutubeId(node.data.source);
-    const iframe = panel.querySelector('iframe');
-    iframe.src = `https://www.youtube.com/embed/${videoId}?modestbranding=1&rel=0`;
-
+    // Set up audio player
+    const player = panel.querySelector('.player');
+    player.src = `audio/${metadata.filename}`;
+    
+    // Set up YouTube embed
+    const embed = panel.querySelector('.youtube-embed');
+    if (metadata.source) {
+        const videoId = extractVideoId(metadata.source);
+        if (videoId) {
+            embed.src = `https://www.youtube.com/embed/${videoId}`;
+            embed.style.display = 'block';
+        } else {
+            embed.style.display = 'none';
+        }
+    } else {
+        embed.style.display = 'none';
+    }
+    
+    // Position panel near click
+    const padding = 20;
+    const maxRight = window.innerWidth - panel.offsetWidth - padding;
+    const maxBottom = window.innerHeight - panel.offsetHeight - padding;
+    
+    panel.style.position = 'fixed';
+    panel.style.left = `${Math.min(event.clientX, maxRight)}px`;
+    panel.style.top = `${Math.min(event.clientY, maxBottom)}px`;
+    
+    // Set up close button
     panel.querySelector('.close-btn').addEventListener('click', () => {
         panel.remove();
         currentPanel = null;
     });
-
-    panel.style.left = `${Math.min(x - 180, window.innerWidth - 360)}px`;
-    panel.style.top = `${Math.max(y - 50, 20)}px`;
+    
     document.body.appendChild(panel);
     currentPanel = panel;
 }
 
-function extractYoutubeId(url) {
-    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+function extractVideoId(url) {
+    const regExp = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/;
     const match = url.match(regExp);
-    return (match && match[2].length === 11) ? match[2] : null;
+    return (match && match[7].length === 11) ? match[7] : null;
 }
 
 function animate() {
@@ -831,7 +1063,7 @@ function animate() {
         node.updateLabelPosition();
     });
     
-    controls.update();
+    controls.update();  // This is important for controls to work
     renderer.render(scene, camera);
 }
 
@@ -925,46 +1157,160 @@ function sendMessage() {
     
     const chatMessages = document.getElementById('chatMessages');
     
-    // Add user message
-    const userMsg = document.createElement('div');
-    userMsg.className = 'message user-message';
-    userMsg.textContent = message;
-    chatMessages.appendChild(userMsg);
-    
-    // Initialize visualization on first message if not already done
-    if (!visualizationInitialized) {
-        // Hide both the face container and kraken container
-        const faceContainer = document.querySelector('.face-container');
-        const krakenContainer = document.querySelector('.kraken-container');
+    // Check if message is a YouTube URL
+    if (message.includes('youtube.com') || message.includes('youtu.be')) {
+        // Handle direct YouTube URL input
+        const botMsg = document.createElement('div');
+        botMsg.className = 'message bot-message';
+        botMsg.textContent = 'Great! Let me process that video for you...';
+        chatMessages.appendChild(botMsg);
         
-        // Fade out face
-        faceContainer.style.transition = 'opacity 1s ease';
-        faceContainer.classList.add('hidden');
-        
-        // Fade out kraken
-        krakenContainer.style.transition = 'opacity 1s ease';
-        krakenContainer.style.opacity = '0';
-        
-        // Remove containers after fade
-        setTimeout(() => {
-            faceContainer.style.display = 'none';
-            krakenContainer.style.display = 'none';
-        }, 1000);
-        
-        init();
-        visualizationInitialized = true;
-        document.getElementById('ui').style.opacity = '1';
+        krakenEffect.startLoading(() => {
+            krakenEffect.startTransition();
+            visualizationInitialized = true;
+        });
+    } else {
+        // Start first loading animation without initial message
+        krakenEffect.startLoading(() => {
+            // Show message and videos after loading
+            const botMsg = document.createElement('div');
+            botMsg.className = 'message bot-message';
+            botMsg.textContent = `I found several versions of "${message}" are any of these correct? Please select one, or feel free to paste a YouTube url directly into chat`;
+            chatMessages.appendChild(botMsg);
+            
+            // Create video grid
+            const videoGrid = document.createElement('div');
+            videoGrid.className = 'video-grid';
+            
+            // Example video options with better formatting
+            const videoOptions = [
+                { 
+                    id: 'dQw4w9WgXcQ', 
+                    title: 'Option 1 - Studio Version', 
+                    duration: '3:32',
+                    description: 'Official music video'
+                },
+                { 
+                    id: 'oHg5SJYRHA0', 
+                    title: 'Option 2 - Live Performance', 
+                    duration: '4:15',
+                    description: 'Live at Madison Square Garden'
+                },
+                { 
+                    id: 'xvFZjo5PgG0', 
+                    title: 'Option 3 - Acoustic Version', 
+                    duration: '3:45',
+                    description: 'Acoustic performance'
+                },
+                { 
+                    id: 'V-_O7nl0Ii0', 
+                    title: 'Option 4 - Music Video', 
+                    duration: '3:58',
+                    description: 'Official music video'
+                },
+                { 
+                    id: 'j5a0jTc9S10', 
+                    title: 'Option 5 - Cover Version', 
+                    duration: '3:21',
+                    description: 'Cover version'
+                }
+            ];
+
+            videoOptions.forEach(video => {
+                const option = document.createElement('div');
+                option.className = 'video-option';
+                option.innerHTML = `
+                    <div class="video-preview">
+                        <img class="video-thumbnail" 
+                             src="https://i.ytimg.com/vi/${video.id}/hqdefault.jpg" 
+                             alt="${video.title}">
+                        <div class="video-duration">${video.duration}</div>
+                    </div>
+                    <div class="video-info">
+                        <div class="video-title">${video.title}</div>
+                        <div class="video-description">${video.description}</div>
+                    </div>
+                `;
+
+                option.addEventListener('click', () => {
+                    // Remove video grid
+                    videoGrid.remove();
+                    
+                    // Add selection confirmation message
+                    const selectionMsg = document.createElement('div');
+                    selectionMsg.className = 'message bot-message';
+                    selectionMsg.textContent = `Processing your selection...`;
+                    chatMessages.appendChild(selectionMsg);
+                    
+                    // Start first loading animation
+                    krakenEffect.startLoading(() => {
+                        // Add voice selection message
+                        const voiceMsg = document.createElement('div');
+                        voiceMsg.className = 'message bot-message';
+                        voiceMsg.textContent = `There was more than one voice in that video, could you listen to these clips and select which voice it is you wish your agent to have?`;
+                        chatMessages.appendChild(voiceMsg);
+                        
+                        // Create audio clips grid
+                        const audioGrid = document.createElement('div');
+                        audioGrid.className = 'audio-clips-grid';
+                        
+                        // Example audio clips - replace with actual clips from the video
+                        const audioClips = [
+                            { id: 1, label: 'Voice 1', url: 'path/to/clip1.mp3' },
+                            { id: 2, label: 'Voice 2', url: 'path/to/clip2.mp3' },
+                            { id: 3, label: 'Voice 3', url: 'path/to/clip3.mp3' }
+                        ];
+
+                        audioClips.forEach(clip => {
+                            const clipOption = document.createElement('div');
+                            clipOption.className = 'audio-clip-option';
+                            clipOption.innerHTML = `
+                                <button class="play-button">▶</button>
+                                <div class="clip-label">${clip.label}</div>
+                                <audio src="${clip.url}" preload="auto"></audio>
+                            `;
+
+                            const playButton = clipOption.querySelector('.play-button');
+                            const audio = clipOption.querySelector('audio');
+                            
+                            playButton.addEventListener('click', (e) => {
+                                e.stopPropagation();  // Prevent option selection when clicking play
+                                audio.play();
+                            });
+
+                            clipOption.addEventListener('click', () => {
+                                // Remove audio grid
+                                audioGrid.remove();
+                                
+                                // Add processing message
+                                const processingMsg = document.createElement('div');
+                                processingMsg.className = 'message bot-message';
+                                processingMsg.textContent = `Processing your voice selection...`;
+                                chatMessages.appendChild(processingMsg);
+                                
+                                // Final loading animation before vortex
+                                krakenEffect.startLoading(() => {
+                                    krakenEffect.startTransition();
+                                    visualizationInitialized = true;
+                                });
+                            });
+
+                            audioGrid.appendChild(clipOption);
+                        });
+
+                        document.body.appendChild(audioGrid);
+                    });
+                });
+
+                videoGrid.appendChild(option);
+            });
+
+            document.body.appendChild(videoGrid);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        });
     }
-    
-    // Add bot response
-    const botMsg = document.createElement('div');
-    botMsg.className = 'message bot-message';
-    botMsg.textContent = `Great choice! I've initialized the voice agent sphere with "${message}". Click any emoji to hear a sample.`;
-    chatMessages.appendChild(botMsg);
-    
-    // Clear input and scroll to bottom
+
     input.value = '';
-    chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
 // Add event listener for Enter key in chat input
@@ -998,33 +1344,52 @@ class KrakenEffect {
         this.mouseX = this.centerX;
         this.mouseY = this.centerY;
         
-        // Adjusted counts for better balance
-        this.numTentacles = 8;  // Increased from 6
-        this.maxDepth = 3;      // Keep at 3 for performance
-        this.floatingParticles = 80; // Increased from 50
+        // Scale parameters based on screen size
+        const screenSize = Math.min(this.width, this.height);
+        const scaleFactor = Math.max(1, screenSize / 800); // Base scale on 800px reference
         
-        // Performance settings
+        this.numTentacles = 8;
+        this.maxDepth = 3;
+        this.floatingParticles = Math.floor(80 * scaleFactor);
+        this.baseRadius = Math.min(400, 250 * scaleFactor); // Scale radius with screen
+        this.branchLength = Math.min(500, 300 * scaleFactor); // Scale branch length
+        
         this.lastFrameTime = 0;
         this.frameInterval = 1000 / 30;
         this.mouseThrottle = 0;
         this.transformUpdates = new Map();
         
+        this.transitioning = false;
+        this.transitionProgress = 0;
+        this.vortexStrength = 0;
+        
+        this.mode = 'normal'; // 'normal', 'loading', 'vortex'
+        this.loadingProgress = 0;
+        this.loadingParticles = [];
+        
+        // Add percentage display element
+        this.percentageDisplay = document.createElement('div');
+        this.percentageDisplay.className = 'loading-percentage';
+        document.body.appendChild(this.percentageDisplay);
+        
         this.init();
+        
+        // Bind the resize handler to this instance
+        this.handleResize = this.handleResize.bind(this);
+        window.addEventListener('resize', this.handleResize);
     }
 
     init() {
-        // Remove center orb creation
         this.bindEvents();
         this.createFractals();
         this.animate();
     }
 
     bindEvents() {
-        // Throttle mouse events
         let lastMouseMove = 0;
         window.addEventListener('mousemove', (e) => {
             const now = performance.now();
-            if (now - lastMouseMove > 16) { // ~60fps throttle
+            if (now - lastMouseMove > 16) {
                 this.mouseX = e.clientX;
                 this.mouseY = e.clientY;
                 lastMouseMove = now;
@@ -1033,22 +1398,20 @@ class KrakenEffect {
     }
 
     createFractals() {
-        // Create main branches with wider spread
         for (let i = 0; i < this.numTentacles; i++) {
             const angle = (i / this.numTentacles) * Math.PI * 2;
             this.createBranch(
                 this.centerX,
                 this.centerY,
-                300, // Increased length
+                this.branchLength,
                 angle,
                 0
             );
         }
 
-        // Add floating particles with wider distribution
         for (let i = 0; i < this.floatingParticles; i++) {
             const angle = Math.random() * Math.PI * 2;
-            const radius = Math.random() * 250; // Increased radius
+            const radius = Math.random() * this.baseRadius;
             const x = this.centerX + Math.cos(angle) * radius;
             const y = this.centerY + Math.sin(angle) * radius;
             
@@ -1062,7 +1425,7 @@ class KrakenEffect {
     createBranch(startX, startY, length, angle, depth) {
         if (depth >= this.maxDepth) return;
 
-        const segments = 10 - depth * 2; // Increased base segments
+        const segments = 10 - depth * 2;
         const segmentLength = length / segments;
         let currentX = startX;
         let currentY = startY;
@@ -1086,13 +1449,12 @@ class KrakenEffect {
                 depth
             });
 
-            // Adjusted branching for better coverage
             if (t > 0.2 && Math.random() < 0.5 - depth * 0.15) {
                 const branchAngle = angle + (Math.random() - 0.5) * Math.PI * 1.2;
                 this.createBranch(
                     currentX,
                     currentY,
-                    length * 0.6, // Increased child branch length
+                    length * 0.6,
                     branchAngle,
                     depth + 1
                 );
@@ -1104,7 +1466,6 @@ class KrakenEffect {
     }
 
     animate = (timestamp) => {
-        // Implement frame rate limiting
         if (timestamp - this.lastFrameTime < this.frameInterval) {
             requestAnimationFrame(this.animate);
             return;
@@ -1114,48 +1475,133 @@ class KrakenEffect {
         this.time += 0.016;
         this.transformUpdates.clear();
         
-        // Batch particle updates
-        this.particles.forEach(particle => {
-            let x = particle.baseX;
-            let y = particle.baseY;
+        if (this.mode === 'loading') {
+            const progress = Math.min(1, this.loadingProgress / 100);
+            const activeAngle = progress * Math.PI * 2;
             
-            if (particle.depth !== undefined) {
-                // Simplified wave calculation
-                const wave = Math.sin(this.time * 2 + particle.segment * 5) * 
-                    (20 - particle.depth * 5);
-                const wave2 = Math.cos(this.time + particle.segment * 3) * 
-                    (15 - particle.depth * 4);
+            this.particles.forEach(particle => {
+                // Update assembly progress
+                particle.assembleProgress = Math.min(1, particle.assembleProgress + particle.assembleSpeed);
                 
-                x += Math.cos(particle.angle) * wave;
-                y += Math.sin(particle.angle) * wave2;
-            } else {
-                particle.angle += particle.speed * 0.02;
-                const radius = particle.radius * (1 + Math.sin(this.time) * 0.1);
-                x = this.centerX + Math.cos(particle.angle) * radius;
-                y = this.centerY + Math.sin(particle.angle) * radius;
+                // Ease function for smooth assembly
+                const ease = t => t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+                const assembleEased = ease(particle.assembleProgress);
+                
+                // Calculate current position
+                const x = particle.startX + (particle.targetX - particle.startX) * assembleEased;
+                const y = particle.startY + (particle.targetY - particle.startY) * assembleEased;
+                
+                // Add subtle orbital motion
+                const orbitRadius = 2 * Math.sin(this.time * 2 + particle.angle * 3);
+                const finalX = x + Math.cos(particle.angle) * orbitRadius;
+                const finalY = y + Math.sin(particle.angle) * orbitRadius;
+                
+                // Highlight active progress
+                let opacity = 0.3;
+                if (particle.angle <= activeAngle) {
+                    opacity = 0.8 + Math.sin(this.time * 4) * 0.2; // Pulsing effect
+                }
+                
+                particle.element.style.opacity = opacity;
+                particle.element.style.transform = `translate(${finalX}px, ${finalY}px) scale(${0.8 + Math.sin(this.time * 3 + particle.angle) * 0.2})`;
+                
+                // Store position for vortex transition
+                particle.baseX = finalX;
+                particle.baseY = finalY;
+            });
+        } else {
+            if (this.transitioning) {
+                this.transitionProgress += 0.025; // Even faster transition
+                this.vortexStrength = Math.min(1, this.transitionProgress * 4); // More immediate force
             }
             
-            // Simplified mouse interaction
-            const dx = this.mouseX - x;
-            const dy = this.mouseY - y;
-            const dist = Math.hypot(dx, dy);
-            
-            if (dist < 150) {
-                const force = (1 - dist / 150) * 15;
-                x += (dx / dist) * force;
-                y += (dy / dist) * force;
-            }
-            
-            this.transformUpdates.set(
-                particle.element, 
-                `translate(${x}px, ${y}px)`
-            );
-        });
-
-        // Batch DOM updates
-        this.transformUpdates.forEach((transform, element) => {
-            element.style.transform = transform;
-        });
+            this.particles.forEach(particle => {
+                let x = particle.baseX;
+                let y = particle.baseY;
+                
+                if (this.transitioning) {
+                    const dx = x - this.centerX;
+                    const dy = y - this.centerY;
+                    const dist = Math.hypot(dx, dy);
+                    const angle = Math.atan2(dy, dx);
+                    
+                    // Much stronger direct pull to center
+                    const gravitationalPull = Math.max(0.2, (400 - dist) / 400) * this.vortexStrength * 4;
+                    
+                    // Minimal spiral effect
+                    const angularVelocity = (1 + (400 - dist) / 400) * this.vortexStrength * 0.2;
+                    
+                    const newAngle = angle + angularVelocity * (particle.speed || 0.5);
+                    
+                    // More aggressive inward movement
+                    const newDist = Math.max(5, dist - gravitationalPull * (20 + Math.random() * 5));
+                    
+                    x = this.centerX + Math.cos(newAngle) * newDist;
+                    y = this.centerY + Math.sin(newAngle) * newDist;
+                    
+                    // Minimal turbulence
+                    const turbulence = (400 - newDist) / 400 * 2 * this.vortexStrength;
+                    x += Math.sin(this.time * 10 + dist) * turbulence;
+                    y += Math.cos(this.time * 10 + dist) * turbulence;
+                    
+                    // Slight stretching towards center
+                    const stretch = Math.min(1.2, (400 - newDist) / 400);
+                    const radialStretch = `scaleX(${1 + stretch * this.vortexStrength}) scaleY(${1 / (1 + stretch * this.vortexStrength)})`;
+                    
+                    const opacity = Math.max(0, (newDist - 5) / 100);
+                    particle.element.style.opacity = opacity;
+                    
+                    particle.element.style.transform = `translate(${x}px, ${y}px) rotate(${newAngle}rad) ${radialStretch}`;
+                    
+                    if (newDist < 5 || opacity <= 0) {
+                        particle.element.remove();
+                        return;
+                    }
+                    
+                    particle.baseX = x;
+                    particle.baseY = y;
+                    
+                } else {
+                    // Normal animation code
+                    if (particle.depth !== undefined) {
+                        const wave = Math.sin(this.time * 2 + particle.segment * 5) * 
+                            (20 - particle.depth * 5);
+                        const wave2 = Math.cos(this.time + particle.segment * 3) * 
+                            (15 - particle.depth * 4);
+                        
+                        x += Math.cos(particle.angle) * wave;
+                        y += Math.sin(particle.angle) * wave2;
+                    } else {
+                        particle.angle += particle.speed * 0.02;
+                        const radius = particle.radius * (1 + Math.sin(this.time) * 0.1);
+                        x = this.centerX + Math.cos(particle.angle) * radius;
+                        y = this.centerY + Math.sin(particle.angle) * radius;
+                    }
+                    
+                    // Mouse interaction
+                    const dx = this.mouseX - x;
+                    const dy = this.mouseY - y;
+                    const dist = Math.hypot(dx, dy);
+                    
+                    if (dist < 150) {
+                        const force = (1 - dist / 150) * 15;
+                        x += (dx / dist) * force;
+                        y += (dy / dist) * force;
+                    }
+                    
+                    this.transformUpdates.set(
+                        particle.element, 
+                        `translate(${x}px, ${y}px)`
+                    );
+                }
+            });
+        }
+        
+        if (!this.transitioning) {
+            this.transformUpdates.forEach((transform, element) => {
+                element.style.transform = transform;
+            });
+        }
         
         requestAnimationFrame(this.animate);
     }
@@ -1171,9 +1617,133 @@ class KrakenEffect {
         this.particles.push(particleObj);
         return particleObj;
     }
+
+    handleResize() {
+        // Update dimensions
+        this.width = window.innerWidth;
+        this.height = window.innerHeight;
+        this.centerX = this.width / 2;
+        this.centerY = this.height / 2;
+
+        // Recalculate scale parameters
+        const screenSize = Math.min(this.width, this.height);
+        const scaleFactor = Math.max(1, screenSize / 800);
+        
+        // Update scaled values
+        this.baseRadius = Math.min(400, 250 * scaleFactor);
+        this.branchLength = Math.min(500, 300 * scaleFactor);
+
+        // Clear existing particles
+        this.particles.forEach(particle => {
+            particle.element.remove();
+        });
+        this.particles = [];
+        
+        // Recreate the pattern with new dimensions
+        this.createFractals();
+    }
+
+    // Add cleanup method to prevent memory leaks
+    cleanup() {
+        window.removeEventListener('resize', this.handleResize);
+        this.particles.forEach(particle => {
+            particle.element.remove();
+        });
+        this.particles = [];
+        this.percentageDisplay.remove();
+    }
+
+    // Add transition method
+    startTransition() {
+        this.mode = 'normal';
+        this.transitioning = true;
+        this.transitionProgress = 0;
+        this.vortexStrength = 0;
+        
+        // Hide percentage display before transition
+        this.percentageDisplay.style.opacity = '0';
+        
+        setTimeout(() => {
+            init();
+            document.getElementById('ui').style.opacity = '1';
+            
+            // Add blockchain message
+            const chatMessages = document.getElementById('chatMessages');
+            const blockchainMsg = document.createElement('div');
+            blockchainMsg.className = 'message bot-message';
+            blockchainMsg.textContent = `Here is the immutable audio dataset for your voice agent, this is instantiated to the Base blockchain and your agent will mint one of these pieces of audio as an NFT every time it processes a Text To Speech (TTS) request...`;
+            chatMessages.appendChild(blockchainMsg);
+            
+            // Add TTS prompt after a short delay
+            setTimeout(() => {
+                const ttsPrompt = document.createElement('div');
+                ttsPrompt.className = 'message bot-message';
+                ttsPrompt.textContent = `Why don't you try a TTS request for your agent right now?`;
+                chatMessages.appendChild(ttsPrompt);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }, 1000); // 1 second delay between messages
+            
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }, 800);
+    }
+
+    startLoading(onComplete) {
+        this.mode = 'loading';
+        this.loadingProgress = 0;
+        
+        // Show percentage display
+        this.percentageDisplay.style.opacity = '1';
+        this.percentageDisplay.textContent = '0%';
+        
+        // Calculate circle parameters
+        const radius = Math.min(this.width, this.height) * 0.2;
+        const totalParticles = this.particles.length;
+        
+        // Assign target positions more organically
+        this.particles.forEach((particle, index) => {
+            // Calculate final circle position
+            const angle = (index / totalParticles) * Math.PI * 2;
+            const targetX = this.centerX + Math.cos(angle) * radius;
+            const targetY = this.centerY + Math.sin(angle) * radius;
+            
+            // Add some randomness to starting positions
+            const randomRadius = radius * (1 + Math.random() * 0.5);
+            const randomAngle = Math.random() * Math.PI * 2;
+            const startX = this.centerX + Math.cos(randomAngle) * randomRadius;
+            const startY = this.centerY + Math.sin(randomAngle) * randomRadius;
+            
+            Object.assign(particle, {
+                targetX,
+                targetY,
+                startX,
+                startY,
+                angle,
+                assembleProgress: 0,
+                assembleSpeed: 0.01 + Math.random() * 0.02
+            });
+        });
+
+        const loadingInterval = setInterval(() => {
+            this.loadingProgress += 0.7;
+            
+            // Update percentage display
+            const percentage = Math.min(100, Math.floor(this.loadingProgress));
+            this.percentageDisplay.textContent = `${percentage}%`;
+            
+            if (this.loadingProgress >= 100) {
+                clearInterval(loadingInterval);
+                
+                // Fade out percentage display
+                this.percentageDisplay.style.opacity = '0';
+                
+                setTimeout(() => {
+                    if (onComplete) onComplete();
+                }, 500);
+            }
+        }, 30);
+    }
 }
 
-// Initialize the effect
 const krakenEffect = new KrakenEffect();
 </script>
 </body>
