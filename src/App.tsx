@@ -331,7 +331,7 @@ const App: React.FC = () => {
   };
 
   return (
-    <Box>
+    <Box height="100vh">
       <Typography>Hello</Typography>
       <canvas ref={canvasRef} />
       <MetadataPanelComponent

@@ -19,7 +19,7 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
 		"types": [
-			"phaser"
+      
 		],
     "allowSyntheticDefaultImports": true
   },
