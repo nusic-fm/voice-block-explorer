@@ -198,7 +198,21 @@ const App: React.FC = () => {
       );
       const { jobId } = response.data;
       getPyannoteJob(jobId, (job) => {
-        setIsKrakenLoading(false);
+        const speakers = job?.speakers;
+        if (speakers && speakers?.length > 0) {
+          setJobInfo(job);
+          setIsKrakenLoading(false);
+          setConversations((prev) => [
+            ...prev,
+            {
+              isUser: false,
+              content:
+                speakers.length > 1
+                  ? `There was more than one voice in that video, could you listen to these clips and select which voice it is you wish your agent to have?`
+                  : `One speaker detected. Click Generate to create your NFT...`,
+            },
+          ]);
+        }
       });
     } catch (e) {
       console.log(e);
