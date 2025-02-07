@@ -11,6 +11,12 @@ interface Particle {
   radius?: number;
   segment?: number;
   depth?: number;
+  targetX?: number;
+  targetY?: number;
+  startX?: number;
+  startY?: number;
+  assembleProgress?: number;
+  assembleSpeed?: number;
 }
 
 const styles = {
@@ -39,12 +45,25 @@ const styles = {
     background: "rgba(0, 255, 255, 0.4)",
     boxShadow: "0 0 15px rgba(0, 255, 255, 0.3)",
   },
+  percentageDisplay: {
+    position: "fixed" as const,
+    top: "50%",
+    left: "50%",
+    transform: "translate(-50%, -50%)",
+    color: "#00ffff",
+    fontSize: "2rem",
+    opacity: 0,
+    transition: "opacity 0.5s ease",
+  },
 };
 
-const KrakenEffect: React.FC = () => {
+const KrakenEffect: React.FC<{ isLoading: boolean }> = ({ isLoading }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const particlesRef = useRef<Particle[]>([]);
   const timeRef = useRef(0);
+  const loadingProgressRef = useRef(0);
+  const percentageDisplayRef = useRef<HTMLDivElement | null>(null);
+  const loadingIntervalRef = useRef<any | null>(null);
   const mouseRef = useRef({
     x: window.innerWidth / 2,
     y: window.innerHeight / 2,
@@ -138,6 +157,106 @@ const KrakenEffect: React.FC = () => {
     }
   };
 
+  const startLoading = (onComplete?: () => void) => {
+    loadingProgressRef.current = 0;
+
+    // Keep particles visible during transition
+    particlesRef.current.forEach((particle) => {
+      particle.element.style.opacity = "0.8"; // Start with high opacity
+    });
+
+    // Show percentage display with a fade
+    if (percentageDisplayRef.current) {
+      percentageDisplayRef.current.style.opacity = "1";
+      percentageDisplayRef.current.textContent = "0%";
+    }
+
+    // Calculate circle parameters
+    const radius = Math.min(window.innerWidth, window.innerHeight) * 0.2;
+    const totalParticles = particlesRef.current.length;
+
+    // Assign target positions using current positions as starting points
+    particlesRef.current.forEach((particle, index) => {
+      const angle = (index / totalParticles) * Math.PI * 2;
+      const targetX = window.innerWidth / 2 + Math.cos(angle) * radius;
+      const targetY = window.innerHeight / 2 + Math.sin(angle) * radius;
+
+      // Use current position as starting point
+      const startX = particle.baseX;
+      const startY = particle.baseY;
+
+      Object.assign(particle, {
+        targetX,
+        targetY,
+        startX,
+        startY,
+        angle,
+        assembleProgress: 0,
+        assembleSpeed: 0.02 + Math.random() * 0.01, // Slightly slower for smoother transition
+      });
+    });
+
+    loadingIntervalRef.current = setInterval(() => {
+      loadingProgressRef.current += 0.8; // Slightly slower progress
+
+      // Update percentage display
+      const percentage = Math.min(95, Math.floor(loadingProgressRef.current));
+      if (percentageDisplayRef.current) {
+        percentageDisplayRef.current.textContent = `${percentage}%`;
+      }
+
+      if (loadingProgressRef.current >= 95) {
+        // clearInterval(loadingIntervalRef.current!);
+        // if (percentageDisplayRef.current) {
+        //   percentageDisplayRef.current.style.opacity = "0";
+        // }
+        // setTimeout(() => {
+        //   if (onComplete) onComplete();
+        // }, 500);
+      }
+    }, 250);
+  };
+
+  const stopLoading = () => {
+    // Only proceed if we're actually in a loading state
+    if (!loadingIntervalRef.current) return;
+
+    // Clear the existing loading interval
+    clearInterval(loadingIntervalRef.current);
+    loadingIntervalRef.current = null;
+
+    // If we haven't reached 95% yet, jump to it
+    if (loadingProgressRef.current < 95) {
+      loadingProgressRef.current = 95;
+      if (percentageDisplayRef.current) {
+        percentageDisplayRef.current.textContent = "95%";
+      }
+    }
+
+    // Animate the final 5%
+    const finalInterval = setInterval(() => {
+      loadingProgressRef.current += 0.2; // Slower progress for the final 5%
+
+      const percentage = Math.min(100, Math.floor(loadingProgressRef.current));
+      if (percentageDisplayRef.current) {
+        percentageDisplayRef.current.textContent = `${percentage}%`;
+      }
+
+      if (loadingProgressRef.current >= 100) {
+        clearInterval(finalInterval);
+        if (percentageDisplayRef.current) {
+          percentageDisplayRef.current.style.opacity = "0";
+        }
+
+        // Reset particles to their original state
+        particlesRef.current.forEach((particle) => {
+          particle.assembleProgress = 0;
+          particle.element.style.opacity = "1";
+        });
+      }
+    }, 30);
+  };
+
   const animate = (timestamp: number) => {
     if (timestamp - lastFrameTimeRef.current < frameIntervalRef.current) {
       requestAnimationFrame(animate);
@@ -201,6 +320,19 @@ const KrakenEffect: React.FC = () => {
     createFractals();
     requestAnimationFrame(animate);
 
+    // Create percentage display element
+    const percentageDisplay = document.createElement("div");
+    percentageDisplay.className = "percentage-display";
+    Object.assign(percentageDisplay.style, styles.percentageDisplay);
+    document.body.appendChild(percentageDisplay);
+    percentageDisplayRef.current = percentageDisplay;
+
+    // // Start loading effect
+    // startLoading(() => {
+    //   console.log("Loading complete!");
+    //   // You can add any additional logic here after loading is complete
+    // });
+
     return () => {
       window.removeEventListener("mousemove", handleMouseMove);
       // Cleanup particles
@@ -208,8 +340,20 @@ const KrakenEffect: React.FC = () => {
         particle.element.remove();
       });
       particlesRef.current = [];
+      if (loadingIntervalRef.current) {
+        clearInterval(loadingIntervalRef.current);
+      }
+      percentageDisplay.remove();
     };
   }, []);
+
+  useEffect(() => {
+    if (isLoading) {
+      startLoading();
+    } else {
+      stopLoading();
+    }
+  }, [isLoading]);
 
   return <div ref={containerRef} style={styles.container} />;
 };

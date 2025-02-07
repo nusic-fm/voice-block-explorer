@@ -1,7 +1,10 @@
-import { Box } from "@mui/material";
+import { Box, Stack } from "@mui/material";
 import "./app.css";
 import AudioExplorerChat from "./components/AudioExplorerChat";
 import KrakenEffect from "./components/KrakenEffect";
+import { useState } from "react";
+import VideoOption from "./components/VideoOption";
+import axios from "axios";
 
 export type AudioFile = {
   filename: string;
@@ -12,6 +15,17 @@ export type AudioFile = {
 };
 
 const App: React.FC = () => {
+  const [youtubeResults, setYoutubeResults] = useState<
+    { url: string; title: string; id: string; description: string }[]
+  >([]);
+  const [isKrakenLoading, setIsKrakenLoading] = useState<boolean>(false);
+  const [conversations, setConversations] = useState<
+    {
+      isUser: boolean;
+      content: string;
+    }[]
+  >([]);
+  const [jobId, setJobId] = useState<string | null>(null);
   // const [audioFiles, setAudioFiles] = useState<AudioFile[]>([
   //   {
   //     filename: "sample1.mp3",
@@ -156,14 +170,75 @@ const App: React.FC = () => {
   // ]);
   // const [selectedNode, setSelectedNode] = useState<AudioFile | null>(null);
   // const [audioNodes, setAudioNodes] = useState<LocalAudioNode[]>([]);
+  const fetchSpeakersUrl = async (video_url: string) => {
+    try {
+      const response = await axios.post(
+        `${
+          import.meta.env.VITE_AGENT_SERVER_URL
+        }/youtube-video-speakers-extraction`,
+        { video_url }
+      );
+      const { jobId } = response.data;
+      setJobId(jobId);
+    } catch (e) {
+      console.log(e);
+    } finally {
+      // setIsKrakenLoading(false);
+    }
+  };
+
+  const onVideoSelected = async (video: {
+    url: string;
+    title: string;
+    id: string;
+    description: string;
+  }) => {
+    setYoutubeResults([]);
+    setIsKrakenLoading(true);
+    setConversations((prev) => [
+      ...prev,
+      { isUser: false, content: `Processing your selection...` },
+    ]);
+    await fetchSpeakersUrl(video.url);
+  };
 
   return (
     <Box height="100vh" width={"100vw"} display={"flex"}>
       <Box width={"calc(100% - 400px)"} position={"relative"} height={"100%"}>
-        <KrakenEffect />
+        {youtubeResults.length === 0 && !jobId ? (
+          <KrakenEffect isLoading={isKrakenLoading} />
+        ) : jobId ? (
+          <Box height={"100%"} display={"flex"} alignItems={"center"}></Box>
+        ) : (
+          <Box height={"100%"} display={"flex"} alignItems={"center"}>
+            <Stack
+              direction={"row"}
+              flexWrap={"wrap"}
+              justifyContent={"center"}
+              // alignItems={"center"}
+              // height={"100%"}
+              gap={4}
+            >
+              {youtubeResults.map((result) => (
+                <VideoOption
+                  key={result.id}
+                  video={result}
+                  onVideoSelected={onVideoSelected}
+                />
+              ))}
+            </Stack>
+          </Box>
+        )}
       </Box>
       <Box width={"400px"} height={"100%"} ml={"auto"}>
-        <AudioExplorerChat />
+        <AudioExplorerChat
+          youtubeResults={youtubeResults}
+          setYoutubeResults={setYoutubeResults}
+          onLoadingStarted={() => setIsKrakenLoading(true)}
+          onLoadingCompleted={() => setIsKrakenLoading(false)}
+          conversations={conversations}
+          setConversations={setConversations}
+        />
       </Box>
     </Box>
   );
