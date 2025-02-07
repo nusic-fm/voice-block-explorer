@@ -419,6 +419,8 @@
             height: 100vh;
             background: #000;
             overflow: hidden;
+            cursor: pointer; /* Add cursor pointer */
+            z-index: 10; /* Ensure it's above other elements */
         }
 
         .tentacle-particle {
@@ -730,6 +732,58 @@
             border-radius: 2px;
             transition: transform 0.1s ease;
         }
+
+        .ava-title {
+            position: fixed;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 11; /* Make sure title is above kraken container */
+            text-align: center;
+            pointer-events: none; /* Allow clicks to pass through to container */
+            opacity: 1;
+            transition: opacity 0.5s ease;
+        }
+
+        .ava-text {
+            font-family: 'Inter', sans-serif;
+            font-size: 12rem;
+            font-weight: 800;
+            color: rgba(0, 255, 255, 0.15);
+            text-shadow: 
+                0 0 20px rgba(0, 255, 255, 0.3),
+                0 0 40px rgba(0, 255, 255, 0.2),
+                0 0 60px rgba(0, 255, 255, 0.1);
+            letter-spacing: 1rem;
+            background: linear-gradient(180deg, 
+                rgba(0, 255, 255, 0.2) 0%,
+                rgba(0, 255, 255, 0.1) 50%,
+                rgba(0, 255, 255, 0.05) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: textPulse 16s ease-in-out infinite;
+        }
+
+        .ava-subtitle {
+            font-family: 'Inter', sans-serif;
+            font-size: 1.8rem;
+            font-weight: 400;
+            color: rgba(0, 255, 255, 0.2);  /* Start at 0.2 opacity like AVA */
+            letter-spacing: 0.8rem;
+            margin-top: -2rem;
+            text-transform: uppercase;
+            animation: textPulse 16s ease-in-out infinite;
+            animation-delay: 0.5s;
+            animation-fill-mode: both;  /* This ensures it starts at the first keyframe */
+        }
+
+        @keyframes textPulse {
+            0% { opacity: 0.2; }
+            25% { opacity: 1; }
+            50% { opacity: 0.2; }
+            75% { opacity: 0.2; } /* Hold at faded state */
+            100% { opacity: 0.2; }
+        }
     </style>
 </head>
 <body>
@@ -799,7 +853,12 @@
         </div>
     </div>
 
-    <div class="kraken-container"></div>
+    <div class="kraken-container">
+        <div class="ava-title">
+            <div class="ava-text">AVA</div>
+            <div class="ava-subtitle">AI Voice Agent</div>
+        </div>
+    </div>
 
     <div class="loading-percentage">0%</div>
 
@@ -1457,9 +1516,48 @@ class KrakenEffect {
         
         this.init();
         
+        // Show AVA title immediately
+        document.querySelector('.ava-title').style.opacity = '1';
+        
         // Bind the resize handler to this instance
         this.handleResize = this.handleResize.bind(this);
         window.addEventListener('resize', this.handleResize);
+
+        // Add click handler to skip to sphere
+        this.container.addEventListener('click', () => {
+            // Skip loading animation and go straight to transition
+            this.mode = 'normal';
+            this.transitioning = true;
+            this.transitionProgress = 0;
+            this.vortexStrength = 0;
+            
+            // Fade out the AVA title
+            document.querySelector('.ava-title').style.opacity = '0';
+            
+            // Initialize sphere immediately
+            setTimeout(() => {
+                init();
+                document.getElementById('ui').style.opacity = '1';
+                
+                // Add blockchain message immediately
+                const chatMessages = document.getElementById('chatMessages');
+                const blockchainMsg = document.createElement('div');
+                blockchainMsg.className = 'message bot-message';
+                blockchainMsg.textContent = `Here is the audio dataset for your voice agent, this will be instantiated to the Base blockchain and your agent will mint one of these pieces of audio as an NFT every time it processes a Text To Speech (TTS) request to create an immutable cryptographic record...`;
+                chatMessages.appendChild(blockchainMsg);
+                
+                // Add TTS prompt with shorter delay
+                setTimeout(() => {
+                    const ttsPrompt = document.createElement('div');
+                    ttsPrompt.className = 'message bot-message';
+                    ttsPrompt.textContent = `Why don't you try a TTS request for your agent right now?`;
+                    chatMessages.appendChild(ttsPrompt);
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                }, 500); // Reduced from 1000ms to 500ms
+                
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }, 400); // Reduced from 800ms to 400ms
+        });
     }
 
     init() {
@@ -1743,36 +1841,40 @@ class KrakenEffect {
         this.transitionProgress = 0;
         this.vortexStrength = 0;
         
-        // Hide percentage display before transition
-        this.percentageDisplay.style.opacity = '0';
+        // Fade out AVA title faster
+        document.querySelector('.ava-title').style.opacity = '0';
         
+        // Initialize sphere sooner
         setTimeout(() => {
             init();
             document.getElementById('ui').style.opacity = '1';
             
-            // Add blockchain message
+            // Add blockchain message immediately
             const chatMessages = document.getElementById('chatMessages');
             const blockchainMsg = document.createElement('div');
             blockchainMsg.className = 'message bot-message';
             blockchainMsg.textContent = `Here is the audio dataset for your voice agent, this will be instantiated to the Base blockchain and your agent will mint one of these pieces of audio as an NFT every time it processes a Text To Speech (TTS) request to create an immutable cryptographic record...`;
             chatMessages.appendChild(blockchainMsg);
             
-            // Add TTS prompt after a short delay
+            // Add TTS prompt with shorter delay
             setTimeout(() => {
                 const ttsPrompt = document.createElement('div');
                 ttsPrompt.className = 'message bot-message';
                 ttsPrompt.textContent = `Why don't you try a TTS request for your agent right now?`;
                 chatMessages.appendChild(ttsPrompt);
                 chatMessages.scrollTop = chatMessages.scrollHeight;
-            }, 1000); // 1 second delay between messages
+            }, 500); // Reduced from 1000ms to 500ms
             
             chatMessages.scrollTop = chatMessages.scrollHeight;
-        }, 800);
+        }, 400); // Reduced from 800ms to 400ms
     }
 
     startLoading(onComplete) {
         this.mode = 'loading';
         this.loadingProgress = 0;
+        
+        // Show the AVA title with fade in
+        document.querySelector('.ava-title').style.opacity = '1';
         
         // Keep particles visible during transition
         this.particles.forEach(particle => {
