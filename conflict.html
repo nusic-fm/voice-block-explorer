@@ -3,26 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <title>AI Voice Agent Launchpad</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
     <style>
         #ui {
             position: fixed;
-            top: 1rem;
+            top: 20px;
             left: 50%;
             transform: translateX(-50%);
-            max-width: max-content;
-            color: #00ffff;
-            background: rgba(10, 10, 18, 0.9);
-            padding: 0.8rem 1.2rem;
-            border-radius: 8px;
-            border: 1px solid rgba(0, 255, 255, 0.2);
-            backdrop-filter: blur(10px);
-            box-shadow: 0 0 20px rgba(0, 255, 255, 0.1);
-            z-index: 2;
-            font-family: 'Inter', sans-serif;
-            font-size: 0.9rem;
-            white-space: nowrap;
+            color: rgba(0, 255, 255, 0.8);
+            font-size: 1.2em;
             opacity: 0;
-            transition: opacity 0.5s ease;
+            transition: opacity 0.5s ease-in;
+            z-index: 100;
+            text-align: center;
+            pointer-events: none;
+        }
+
+        /* Add fade out animation */
+        @keyframes uiFadeOut {
+            0% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+
+        .ui-fade-out {
+            animation: uiFadeOut 2s ease-out forwards;
         }
 
         :root {
@@ -112,10 +116,10 @@
         .node-label {
             position: fixed;
             font-size: 1.8em;
-            pointer-events: none !important; /* Ensure labels don't interfere */
+            pointer-events: none !important;
             text-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
             transform: translate(-50%, -50%);
-            z-index: 1000;
+            z-index: 10;
             color: #00ffff;
             user-select: none;
         }
@@ -265,23 +269,23 @@
             left: 0;
             width: 100%;
             height: 100%;
-            z-index: 5;
-            pointer-events: all;
-            user-select: none;
-            cursor: default;
+            z-index: 20;
+            pointer-events: none;
         }
 
-        .visualization-container.visible {
-            opacity: 1;
-        }
-
-        canvas {
-            position: absolute !important;
-            top: 0;
-            left: 0;
-            width: 100% !important;
-            height: 100% !important;
-            cursor: pointer !important; /* Force pointer cursor */
+        .audio-visualizer {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 200px;
+            height: 200px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 20;
+            perspective: 1000px;
+            transform-style: preserve-3d;
+            pointer-events: none;
         }
 
         .face-container {
@@ -419,8 +423,9 @@
             height: 100vh;
             background: #000;
             overflow: hidden;
-            cursor: pointer; /* Add cursor pointer */
-            z-index: 10; /* Ensure it's above other elements */
+            cursor: pointer;
+            z-index: 1;
+            pointer-events: all;
         }
 
         .tentacle-particle {
@@ -691,98 +696,99 @@
 
         .node-glow {
             position: absolute;
-            width: 50px;
-            height: 50px;
+            width: 40px;  /* Smaller, tighter around emoji */
+            height: 40px;
             border-radius: 50%;
             pointer-events: none;
             background: radial-gradient(circle at center,
-                rgba(0, 255, 255, 0.8) 0%,
-                rgba(0, 255, 255, 0.4) 30%,
-                rgba(0, 255, 255, 0) 70%
+                rgba(0, 255, 255, 0.9) 0%,
+                rgba(0, 255, 255, 0.6) 40%,
+                rgba(0, 255, 255, 0.2) 70%,
+                rgba(0, 255, 255, 0) 100%
             );
-            filter: blur(8px);
-            transform: scale(2);
-            transition: opacity 0.3s ease;
-            z-index: 6;
+            filter: blur(4px) contrast(1.5);  /* Tighter blur */
+            transform: scale(1);
+            mix-blend-mode: screen;
+            z-index: 100;
+            animation: subtleGlow 2s ease-in-out;
         }
 
-        @keyframes nodePulse {
-            0% { transform: scale(2); opacity: 0.8; }
-            50% { transform: scale(3); opacity: 1; }
-            100% { transform: scale(2); opacity: 0.8; }
+        @keyframes subtleGlow {
+            0% { transform: scale(0.8); opacity: 0; }
+            50% { transform: scale(1.2); opacity: 1; }
+            100% { transform: scale(0.8); opacity: 0; }
         }
 
-        .audio-visualizer {
+        .audio-visualizer .tentacle-particle {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            width: 1.5px;
+            height: 1.5px;
+            background: rgba(0, 255, 255, 0.9);
+            border-radius: 50%;
+            transform-origin: center;
+            mix-blend-mode: screen;
+            transition: transform 0.1s ease;
+            transform-style: preserve-3d;
+            will-change: transform;
+        }
+
+        .audio-visualizer .branch-particle {
+            box-shadow: 0 0 5px rgba(0, 255, 255, 0.7);
+        }
+
+        .audio-visualizer .float-particle {
+            background: rgba(0, 255, 255, 0.8);
+            box-shadow: 0 0 4px rgba(0, 255, 255, 0.6);
+        }
+
+        .ava-title {
             position: absolute;
             left: 50%;
             top: 50%;
             transform: translate(-50%, -50%);
-            width: 200px;
-            height: 200px;
-            display: grid;
-            grid-template-columns: repeat(8, 1fr);
-            gap: 2px;
-            opacity: 0;
-            transition: opacity 0.5s ease;
-            z-index: 6;
-        }
-
-        .visualizer-particle {
-            background: rgba(0, 255, 255, 0.3);
-            border-radius: 2px;
-            transition: transform 0.1s ease;
-        }
-
-        .ava-title {
-            position: fixed;
-            left: 50%;
-            top: 50%;
-            transform: translate(-50%, -50%);
-            z-index: 11; /* Make sure title is above kraken container */
             text-align: center;
-            pointer-events: none; /* Allow clicks to pass through to container */
-            opacity: 1;
-            transition: opacity 0.5s ease;
+            color: rgba(0, 255, 255, 0.8);
+            z-index: 10;
+            pointer-events: none;
+            opacity: 0;
+            animation: titlePulse 40s ease-in-out infinite;
+            font-family: 'Orbitron', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            text-shadow: 0 0 10px rgba(0, 255, 255, 0.3),
+                         0 0 20px rgba(0, 255, 255, 0.2),
+                         0 0 30px rgba(0, 255, 255, 0.1);
         }
 
         .ava-text {
-            font-family: 'Inter', sans-serif;
-            font-size: 12rem;
-            font-weight: 800;
-            color: rgba(0, 255, 255, 0.15);
-            text-shadow: 
-                0 0 20px rgba(0, 255, 255, 0.3),
-                0 0 40px rgba(0, 255, 255, 0.2),
-                0 0 60px rgba(0, 255, 255, 0.1);
-            letter-spacing: 1rem;
-            background: linear-gradient(180deg, 
-                rgba(0, 255, 255, 0.2) 0%,
-                rgba(0, 255, 255, 0.1) 50%,
-                rgba(0, 255, 255, 0.05) 100%);
+            font-size: 8em;
+            font-weight: 700;
+            letter-spacing: 0.2em;
             -webkit-background-clip: text;
+            background-clip: text;
             -webkit-text-fill-color: transparent;
-            animation: textPulse 16s ease-in-out infinite;
+            background-image: linear-gradient(180deg, 
+                rgba(0, 255, 255, 0.6) 0%,    /* Adjusted opacity */
+                rgba(0, 255, 255, 0.5) 50%,    /* Adjusted opacity */
+                rgba(0, 255, 255, 0.4) 100%    /* Adjusted opacity */
+            );
         }
 
         .ava-subtitle {
-            font-family: 'Inter', sans-serif;
-            font-size: 1.8rem;
+            font-size: 2.5em;
+            opacity: 0.6;  /* Adjusted from 0.8 */
+            margin-top: 0.5em;
             font-weight: 400;
-            color: rgba(0, 255, 255, 0.2);  /* Start at 0.2 opacity like AVA */
-            letter-spacing: 0.8rem;
-            margin-top: -2rem;
-            text-transform: uppercase;
-            animation: textPulse 16s ease-in-out infinite;
-            animation-delay: 0.5s;
-            animation-fill-mode: both;  /* This ensures it starts at the first keyframe */
+            letter-spacing: 0.3em;
         }
 
-        @keyframes textPulse {
-            0% { opacity: 0.2; }
-            25% { opacity: 1; }
-            50% { opacity: 0.2; }
-            75% { opacity: 0.2; } /* Hold at faded state */
-            100% { opacity: 0.2; }
+        @keyframes titlePulse {
+            0% { opacity: 0; }
+            40% { opacity: 0.6; }  /* Changed from 1.0 to 0.6 */
+            80% { opacity: 0.2; }
+            100% { opacity: 0; }
         }
     </style>
 </head>
@@ -856,7 +862,7 @@
     <div class="kraken-container">
         <div class="ava-title">
             <div class="ava-text">AVA</div>
-            <div class="ava-subtitle">AI Voice Agent</div>
+            <div class="ava-subtitle">AI Voice Agents</div>
         </div>
     </div>
 
@@ -969,7 +975,7 @@ class AudioNode {
             const t = this.animationProgress;
             const eased = t < 0.5 
                 ? 4 * t * t 
-                : 1 + Math.sin((t - 0.5) * Math.PI) * Math.exp(-(t - 0.5) * 2.5) * 0.35;
+                : 1 + Math.sin((t - 0.5) * Math.PI) * 0.35;
             
             const progress = eased;
             const overshotPosition = this.targetPosition.clone().add(
@@ -1053,7 +1059,7 @@ async function init() {
             const position = new THREE.Vector3(
                 Math.cos(theta) * radius * Math.sin(phi),
                 Math.sin(theta) * radius * Math.sin(phi),
-                Math.cos(phi) * radius
+                Math.cos(phi) * radius * 1.5 // Increased Z spread
             );
 
             const node = new AudioNode(position, file, index, nodeCount);
@@ -1061,9 +1067,16 @@ async function init() {
             audioNodes.push(node);
         });
 
-        document.getElementById('ui').textContent = `Audio Dataset Prepared for Blockchain Instantiation`;
-        // Make visualization visible
-        document.querySelector('.visualization-container').classList.add('visible');
+        document.getElementById('ui').textContent = `Audio Dataset Deployed as NFT Contract`;
+        document.getElementById('ui').style.opacity = '1';
+        
+        // Add fade out after a delay
+        setTimeout(() => {
+            document.getElementById('ui').classList.add('ui-fade-out');
+        }, 2000); // Wait 2 seconds before starting fade
+        
+        // Set visualization as initialized so TTS requests work
+        visualizationInitialized = true;
 
     } catch (error) {
         document.getElementById('ui').textContent = `Error: ${error.message}`;
@@ -1071,7 +1084,7 @@ async function init() {
     }
 
     // Adjust camera and controls
-    camera.position.z = 40;
+    camera.position.z = 60; // Increased from 40
     controls = new THREE.OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.dampingFactor = 0.05;
@@ -1268,199 +1281,56 @@ function formatDuration(seconds) {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
 }
 
-// Chat functionality
-function sendMessage() {
-    const input = document.getElementById('chatInput');
-    const message = input.value.trim();
-    if (!message) return;
-    
-    const chatMessages = document.getElementById('chatMessages');
-    
-    // Check if message is a YouTube URL
-    if (message.includes('youtube.com') || message.includes('youtu.be')) {
-        // Handle direct YouTube URL input
-        const botMsg = document.createElement('div');
-        botMsg.className = 'message bot-message';
-        botMsg.textContent = 'Great! Let me process that video for you...';
-        chatMessages.appendChild(botMsg);
+// Add this function to handle TTS requests
+function handleTTSRequest(text) {
+    const randomNode = audioNodes[Math.floor(Math.random() * audioNodes.length)];
+    const glow = document.createElement('div');
+    glow.className = 'node-glow';
+    document.body.appendChild(glow);
+
+    // Create an animation frame loop to track the node
+    function updateGlowPosition() {
+        const label = randomNode.label;
+        const labelRect = label.getBoundingClientRect();
+        glow.style.left = `${labelRect.left + (labelRect.width / 2) - 20}px`;
+        glow.style.top = `${labelRect.top + (labelRect.height / 2) - 20}px`;
         
-        krakenEffect.startLoading(() => {
-            krakenEffect.startTransition();
-            visualizationInitialized = true;
-        });
-    } else {
-        // Start first loading animation without initial message
-        krakenEffect.startLoading(() => {
-            // Show message and videos after loading
-            const botMsg = document.createElement('div');
-            botMsg.className = 'message bot-message';
-            botMsg.textContent = `I found several versions of "${message}" are any of these correct? Please select one, or feel free to paste a YouTube url directly into chat`;
-            chatMessages.appendChild(botMsg);
-            
-            // Create video grid
-            const videoGrid = document.createElement('div');
-            videoGrid.className = 'video-grid';
-            
-            // Example video options with better formatting
-            const videoOptions = [
-                { 
-                    id: 'dQw4w9WgXcQ', 
-                    title: 'Option 1 - Studio Version', 
-                    duration: '3:32',
-                    description: 'Official music video'
-                },
-                { 
-                    id: 'oHg5SJYRHA0', 
-                    title: 'Option 2 - Live Performance', 
-                    duration: '4:15',
-                    description: 'Live at Madison Square Garden'
-                },
-                { 
-                    id: 'xvFZjo5PgG0', 
-                    title: 'Option 3 - Acoustic Version', 
-                    duration: '3:45',
-                    description: 'Acoustic performance'
-                },
-                { 
-                    id: 'V-_O7nl0Ii0', 
-                    title: 'Option 4 - Music Video', 
-                    duration: '3:58',
-                    description: 'Official music video'
-                },
-                { 
-                    id: 'j5a0jTc9S10', 
-                    title: 'Option 5 - Cover Version', 
-                    duration: '3:21',
-                    description: 'Cover version'
-                }
-            ];
-
-            videoOptions.forEach(video => {
-                const option = document.createElement('div');
-                option.className = 'video-option';
-                option.innerHTML = `
-                    <div class="video-preview">
-                        <img class="video-thumbnail" 
-                            src="https://i.ytimg.com/vi/${video.id}/hqdefault.jpg" 
-                            alt="${video.title}">
-                        <div class="video-duration">${video.duration}</div>
-                    </div>
-                    <div class="video-info">
-                        <div class="video-title">${video.title}</div>
-                        <div class="video-description">${video.description}</div>
-                    </div>
-                `;
-
-                option.addEventListener('click', () => {
-                    // Remove video grid
-                    videoGrid.remove();
-                    
-                    // Add selection confirmation message
-                    const selectionMsg = document.createElement('div');
-                    selectionMsg.className = 'message bot-message';
-                    selectionMsg.textContent = `Processing your selection...`;
-                    chatMessages.appendChild(selectionMsg);
-                    
-                    // Start first loading animation
-                    krakenEffect.startLoading(() => {
-                        // Add voice selection message
-                        const voiceMsg = document.createElement('div');
-                        voiceMsg.className = 'message bot-message';
-                        voiceMsg.textContent = `There was more than one voice in that video, could you listen to these clips and select which voice it is you wish your agent to have?`;
-                        chatMessages.appendChild(voiceMsg);
-                        
-                        // Create audio clips grid
-                        const audioGrid = document.createElement('div');
-                        audioGrid.className = 'audio-clips-grid';
-                        
-                        // Example audio clips - replace with actual clips from the video
-                        const audioClips = [
-                            { id: 1, label: 'Voice 1', url: 'audio/sample1.mp3' },
-                            { id: 2, label: 'Voice 2', url: 'audio/sample2.mp3' },
-                            { id: 3, label: 'Voice 3', url: 'audio/sample3.mp3' }
-                        ];
-
-                        audioClips.forEach(clip => {
-                            const clipOption = document.createElement('div');
-                            clipOption.className = 'audio-clip-option';
-                            clipOption.innerHTML = `
-                                <button class="play-button">▶</button>
-                                <div class="clip-label">${clip.label}</div>
-                                <audio src="${clip.url}" preload="auto"></audio>
-                            `;
-
-                            const playButton = clipOption.querySelector('.play-button');
-                            const audio = clipOption.querySelector('audio');
-                            
-                            playButton.addEventListener('click', (e) => {
-                                e.stopPropagation();
-                                
-                                // Stop all other audio clips
-                                document.querySelectorAll('.audio-clip-option audio').forEach(a => {
-                                    if (a !== audio) {
-                                        a.pause();
-                                        a.currentTime = 0;
-                                        a.closest('.audio-clip-option').querySelector('.play-button').textContent = '▶';
-                                    }
-                                });
-                                
-                                // Toggle play/pause
-                                if (audio.paused) {
-                                    audio.play();
-                                    playButton.textContent = '⏸';
-                                } else {
-                                    audio.pause();
-                                    audio.currentTime = 0;
-                                    playButton.textContent = '▶';
-                                }
-                            });
-
-                            // Reset button when audio ends
-                            audio.addEventListener('ended', () => {
-                                playButton.textContent = '▶';
-                            });
-
-                            clipOption.addEventListener('click', () => {
-                                // Remove audio grid
-                                audioGrid.remove();
-                                
-                                // Add processing message
-                                const processingMsg = document.createElement('div');
-                                processingMsg.className = 'message bot-message';
-                                processingMsg.textContent = `Processing your voice selection...`;
-                                chatMessages.appendChild(processingMsg);
-                                
-                                // Final loading animation before vortex
-                                krakenEffect.startLoading(() => {
-                                    krakenEffect.startTransition();
-                                    visualizationInitialized = true;
-                                });
-                            });
-
-                            audioGrid.appendChild(clipOption);
-                        });
-
-                        document.body.appendChild(audioGrid);
-                    });
-                });
-
-                videoGrid.appendChild(option);
-            });
-
-            document.body.appendChild(videoGrid);
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-        });
+        if (glow.parentElement) { // Keep updating until glow is removed
+            requestAnimationFrame(updateGlowPosition);
+        }
     }
+    updateGlowPosition();
 
-    input.value = '';
+    setTimeout(() => {
+        glow.remove();
+        showNFTDialog();
+        setTimeout(startAudioVisualization, 500);
+    }, 2000);
 }
 
-// Add event listener for Enter key in chat input
-document.getElementById('chatInput').addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') {
-        sendMessage();
+// Modify sendMessage to handle TTS requests
+function sendMessage() {
+    const input = document.getElementById('chatInput');
+    const text = input.value.trim();
+    
+    if (!text) return;
+    
+    // Add user message
+    const chatMessages = document.getElementById('chatMessages');
+    const userMsg = document.createElement('div');
+    userMsg.className = 'message user-message';
+    userMsg.textContent = text;
+    chatMessages.appendChild(userMsg);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+    
+    // Clear input
+    input.value = '';
+    
+    // If we're at TTS stage, handle the request
+    if (visualizationInitialized) {
+        handleTTSRequest(text);
     }
-});
+}
 
 // Modify the existing init() function to call updateAnalytics
 const originalInit = init;
@@ -1516,9 +1386,6 @@ class KrakenEffect {
         
         this.init();
         
-        // Show AVA title immediately
-        document.querySelector('.ava-title').style.opacity = '1';
-        
         // Bind the resize handler to this instance
         this.handleResize = this.handleResize.bind(this);
         window.addEventListener('resize', this.handleResize);
@@ -1531,19 +1398,17 @@ class KrakenEffect {
             this.transitionProgress = 0;
             this.vortexStrength = 0;
             
-            // Fade out the AVA title
-            document.querySelector('.ava-title').style.opacity = '0';
-            
             // Initialize sphere immediately
             setTimeout(() => {
                 init();
+                visualizationInitialized = true;  // Also set it here
                 document.getElementById('ui').style.opacity = '1';
                 
                 // Add blockchain message immediately
                 const chatMessages = document.getElementById('chatMessages');
                 const blockchainMsg = document.createElement('div');
                 blockchainMsg.className = 'message bot-message';
-                blockchainMsg.textContent = `Here is the audio dataset for your voice agent, this will be instantiated to the Base blockchain and your agent will mint one of these pieces of audio as an NFT every time it processes a Text To Speech (TTS) request to create an immutable cryptographic record...`;
+                blockchainMsg.textContent = `Here is the audio dataset for your voice agent, this is now deployed to the Base blockchain and your agent will mint one of these pieces of audio as an NFT every time it processes a Text To Speech (TTS) request to create an immutable cryptographic record...`;
                 chatMessages.appendChild(blockchainMsg);
                 
                 // Add TTS prompt with shorter delay
@@ -1564,6 +1429,9 @@ class KrakenEffect {
         this.bindEvents();
         this.createFractals();
         this.animate();
+        
+        // Show AVA title immediately
+        document.querySelector('.ava-title').style.opacity = '1';
     }
 
     bindEvents() {
@@ -1592,7 +1460,7 @@ class KrakenEffect {
 
         for (let i = 0; i < this.floatingParticles; i++) {
             const angle = Math.random() * Math.PI * 2;
-            const radius = Math.random() * this.baseRadius;
+            const radius = Math.random() * 45;
             const x = this.centerX + Math.cos(angle) * radius;
             const y = this.centerY + Math.sin(angle) * radius;
             
@@ -1841,32 +1709,38 @@ class KrakenEffect {
         this.transitionProgress = 0;
         this.vortexStrength = 0;
         
-        // Fade out AVA title faster
-        document.querySelector('.ava-title').style.opacity = '0';
+        // Debug title handling
+        const titles = document.querySelectorAll('.ava-title');
+        console.log('Found titles:', titles.length);
         
-        // Initialize sphere sooner
+        const title = document.querySelector('.ava-title');
+        if (title) {
+            console.log('Title before:', {
+                animation: title.style.animation,
+                opacity: title.style.opacity,
+                classList: [...title.classList]
+            });
+            
+            title.classList.add('disappear');
+            
+            console.log('Title after adding class:', {
+                animation: title.style.animation,
+                opacity: title.style.opacity,
+                classList: [...title.classList]
+            });
+            
+            setTimeout(() => {
+                console.log('Before removal, title exists:', !!document.querySelector('.ava-title'));
+                title.remove();
+                console.log('After removal, title exists:', !!document.querySelector('.ava-title'));
+            }, 200);
+        }
+        
+        // Initialize sphere
         setTimeout(() => {
             init();
             document.getElementById('ui').style.opacity = '1';
-            
-            // Add blockchain message immediately
-            const chatMessages = document.getElementById('chatMessages');
-            const blockchainMsg = document.createElement('div');
-            blockchainMsg.className = 'message bot-message';
-            blockchainMsg.textContent = `Here is the audio dataset for your voice agent, this will be instantiated to the Base blockchain and your agent will mint one of these pieces of audio as an NFT every time it processes a Text To Speech (TTS) request to create an immutable cryptographic record...`;
-            chatMessages.appendChild(blockchainMsg);
-            
-            // Add TTS prompt with shorter delay
-            setTimeout(() => {
-                const ttsPrompt = document.createElement('div');
-                ttsPrompt.className = 'message bot-message';
-                ttsPrompt.textContent = `Why don't you try a TTS request for your agent right now?`;
-                chatMessages.appendChild(ttsPrompt);
-                chatMessages.scrollTop = chatMessages.scrollHeight;
-            }, 500); // Reduced from 1000ms to 500ms
-            
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-        }, 400); // Reduced from 800ms to 400ms
+        }, 400);
     }
 
     startLoading(onComplete) {
@@ -1930,6 +1804,208 @@ class KrakenEffect {
 }
 
 const krakenEffect = new KrakenEffect();
+
+// Add NFT minted dialog function
+function showNFTDialog() {
+    const dialog = document.createElement('div');
+    dialog.style.cssText = `
+        position: fixed;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(0, 255, 255, 0.1);
+        border: 1px solid var(--neon-teal);
+        color: var(--neon-teal);
+        padding: 1rem 2rem;
+        border-radius: 8px;
+        font-family: 'Inter', sans-serif;
+        backdrop-filter: blur(10px);
+        z-index: 1000;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    `;
+    dialog.textContent = 'Audio Data NFT Minted';
+    document.body.appendChild(dialog);
+    
+    // Fade in
+    requestAnimationFrame(() => dialog.style.opacity = '1');
+    
+    // Remove after 3 seconds
+    setTimeout(() => {
+        dialog.style.opacity = '0';
+        setTimeout(() => dialog.remove(), 300);
+    }, 3000);
+}
+
+// Add audio visualization function
+function startAudioVisualization() {
+    const audio = new Audio('audio/sample1.mp3');
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const analyser = audioContext.createAnalyser();
+    const source = audioContext.createMediaElementSource(audio);
+    
+    source.connect(analyser);
+    analyser.connect(audioContext.destination);
+    analyser.fftSize = 2048;
+
+    const container = document.createElement('div');
+    container.className = 'audio-visualizer';
+    document.body.appendChild(container);
+
+    // Create a spherical energy field
+    const particles = [];
+    const numLayers = 6;
+    const particlesPerLayer = 20;
+    const floatingParticles = 45;
+
+    // Center coordinates for better alignment
+    const centerX = 0;
+    const centerY = 0;
+
+    // Create spherical layers with centered coordinates
+    for (let layer = 0; layer < numLayers; layer++) {
+        const layerRadius = 25 + layer * 15;
+        for (let i = 0; i < particlesPerLayer; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'tentacle-particle branch-particle';
+            container.appendChild(particle);
+            
+            const phi = Math.acos(-1 + (2 * layer) / numLayers);
+            const theta = Math.sqrt(particlesPerLayer * Math.PI) * i;
+            
+            particles.push({
+                element: particle,
+                theta,
+                phi,
+                radius: layerRadius,
+                size: 1.4 - (layer / numLayers),
+                phase: Math.random() * Math.PI * 2,
+                speed: 0.5 + Math.random() * 0.5
+            });
+        }
+    }
+
+    // Create floating particles with centered coordinates
+    for (let i = 0; i < floatingParticles; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'tentacle-particle float-particle';
+        container.appendChild(particle);
+        
+        const radius = Math.random() * 45;
+        const theta = Math.random() * Math.PI * 2;
+        const phi = Math.acos(2 * Math.random() - 1);
+        
+        particles.push({
+            element: particle,
+            theta,
+            phi,
+            radius,
+            speed: 0.2 + Math.random() * 0.2,
+            size: 1.0 + Math.random() * 0.8,
+            phase: Math.random() * Math.PI * 2
+        });
+    }
+
+    setTimeout(() => {
+        container.style.opacity = '1';
+        audio.play();
+    }, 300);
+
+    let time = 0;
+    function animate() {
+        time += 0.016;
+        
+        const dataArray = new Uint8Array(analyser.frequencyBinCount);
+        analyser.getByteFrequencyData(dataArray);
+
+        const bassFreq = dataArray.slice(0, 10).reduce((a, b) => a + b, 0) / 2550;
+        const midFreq = dataArray.slice(10, 100).reduce((a, b) => a + b, 0) / 22950;
+        const highFreq = dataArray.slice(100, 200).reduce((a, b) => a + b, 0) / 25500;
+
+        // Gentler rotation
+        const rotationX = Math.sin(time * 0.5) * 0.1;
+        const rotationY = Math.cos(time * 0.3) * 0.1;
+
+        particles.forEach(particle => {
+            // Update particle position with spherical coordinates
+            const theta = particle.theta + time * particle.speed * (1 + bassFreq * 0.3);
+            const phi = particle.phi + Math.sin(time + particle.phase) * 0.1;
+            
+            // Add audio-reactive radius variation
+            const radiusVar = Math.sin(time * 2 + particle.phase) * (5 * midFreq);
+            const radius = particle.radius * (1 + bassFreq * 0.2) + radiusVar;
+
+            // Convert spherical to cartesian coordinates
+            const x = radius * Math.sin(phi) * Math.cos(theta);
+            const y = radius * Math.sin(phi) * Math.sin(theta);
+            const z = radius * Math.cos(phi);
+
+            // Apply rotation
+            const rx = x * Math.cos(rotationX) - z * Math.sin(rotationX);
+            const ry = y;
+            const rz = x * Math.sin(rotationX) + z * Math.cos(rotationX);
+
+            const finalX = rx * Math.cos(rotationY) - ry * Math.sin(rotationY);
+            const finalY = rx * Math.sin(rotationY) + ry * Math.cos(rotationY);
+            const finalZ = rz;
+
+            particle.element.style.transform = 
+                `translate3d(${finalX}px, ${finalY}px, ${finalZ}px) 
+                 scale(${particle.size * (1 + highFreq * 0.3)})`;
+            
+            // Adjust opacity based on z-position for depth effect
+            const depth = (finalZ + 40) / 80;
+            particle.element.style.opacity = 
+                (particle.element.classList.contains('branch-particle') ? 0.4 : 0.3) + 
+                bassFreq * 0.6 * depth;
+        });
+
+        if (!audio.ended) requestAnimationFrame(animate);
+        else {
+            // Collapse sphere effect
+            let collapse = 0;
+            const fadeOut = setInterval(() => {
+                collapse += 0.02;
+                const scale = 1 - collapse;
+                
+                particles.forEach(particle => {
+                    particle.element.style.transform += ` scale(${scale})`;
+                    particle.element.style.opacity = Math.max(0, 1 - collapse * 2);
+                });
+                
+                if (collapse >= 1) {
+                    clearInterval(fadeOut);
+                    particles.forEach(p => p.element.remove());
+                    container.remove();
+                }
+            }, 16);
+        }
+    }
+
+    animate();
+}
+
+function createTitle() {
+    const title = document.createElement('div');
+    title.className = 'ava-title';
+    title.innerHTML = `
+        <div class="ava-text">AVA</div>
+        <div class="ava-subtitle">AI Voice Agents</div>
+    `;
+    document.body.appendChild(title);
+}
 </script>
+
+<svg style="position: absolute; width: 0; height: 0;">
+    <defs>
+        <filter id="glow">
+            <feGaussianBlur stdDeviation="1" result="coloredBlur"/>
+            <feMerge>
+                <feMergeNode in="coloredBlur"/>
+                <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+        </filter>
+    </defs>
+</svg>
 </body>
 </html>
