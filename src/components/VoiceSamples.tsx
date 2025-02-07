@@ -1,15 +1,16 @@
 import { useState } from "react";
 import { getSpeakerAudioUrl } from "../helper";
-import { IconButton, Stack, Typography } from "@mui/material";
+import { Button, IconButton, Stack, Typography } from "@mui/material";
 import PauseIcon from "@mui/icons-material/Pause";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 
 type Props = {
   jobId: string;
   speakers: string[];
+  onGenerate: (speakerPath: string) => void;
 };
 
-const VoiceSamples = ({ jobId, speakers }: Props) => {
+const VoiceSamples = ({ jobId, speakers, onGenerate }: Props) => {
   const [playing, setPlaying] = useState<string | null>(null);
   const [audio, setAudio] = useState<HTMLAudioElement | null>(null);
 
@@ -57,28 +58,44 @@ const VoiceSamples = ({ jobId, speakers }: Props) => {
   };
 
   return (
-    <Stack direction={"row"} gap={2} justifyContent={"center"} width={"100%"}>
-      {speakers.map((speaker, i) => (
-        <Stack
-          key={speaker}
-          border={"1px solid #00ffff"}
-          py={4}
-          width={220}
-          borderRadius={4}
-          alignItems={"center"}
-          justifyContent={"center"}
-          gap={2}
-        >
-          <IconButton
-            onClick={() => handlePlay(speaker)}
-            size="large"
-            sx={{ border: "1px solid #00ffff" }}
+    <Stack
+      height={"100%"}
+      justifyContent={"center"}
+      display={"flex"}
+      alignItems={"center"}
+      gap={4}
+    >
+      <Stack direction={"row"} gap={2} justifyContent={"center"} width={"100%"}>
+        {speakers.map((speaker, i) => (
+          <Stack
+            key={speaker}
+            border={"1px solid #00ffff"}
+            py={4}
+            width={220}
+            borderRadius={4}
+            alignItems={"center"}
+            justifyContent={"center"}
+            gap={2}
           >
-            {playing === speaker ? <PauseIcon /> : <PlayArrowIcon />}
-          </IconButton>
-          <Typography>Speaker {i + 1}</Typography>
-        </Stack>
-      ))}
+            <IconButton
+              onClick={() => handlePlay(speaker)}
+              size="large"
+              sx={{ border: "1px solid #00ffff" }}
+            >
+              {playing === speaker ? <PauseIcon /> : <PlayArrowIcon />}
+            </IconButton>
+            <Typography>Speaker {i + 1}</Typography>
+          </Stack>
+        ))}
+      </Stack>
+      <Button
+        disabled={!playing}
+        variant="contained"
+        color="primary"
+        onClick={() => playing && onGenerate(playing)}
+      >
+        Generate
+      </Button>
     </Stack>
   );
 };

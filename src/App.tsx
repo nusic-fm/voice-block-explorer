@@ -11,6 +11,8 @@ import {
 } from "./services/db/pyannoteJobs.service";
 import VoiceSamples from "./components/VoiceSamples";
 import AnalyticsExplorer from "./components/AnalyticsExplorer";
+import { createVoice } from "./services/db/voices.service";
+import { getSpeakerAudioUrl } from "./helper";
 
 export type AudioFile = {
   filename: string;
@@ -236,6 +238,29 @@ const App: React.FC = () => {
     await fetchSpeakersUrl(video.url);
   };
 
+  const onGenerate = async (speakerPath: string) => {
+    setIsKrakenLoading(true);
+
+    setConversations((prev) => [
+      ...prev,
+      { isUser: false, content: `Generating your NFT...` },
+    ]);
+    if (!jobInfo?.id) return;
+    await createVoice({
+      audioPath: speakerPath,
+      name: "New Voice",
+      emotion: "Happy",
+      slug: "new-voice",
+      jobId: jobInfo.id,
+      audioUrl: getSpeakerAudioUrl(jobInfo.id, speakerPath),
+    });
+    setConversations((prev) => [
+      ...prev,
+      { isUser: false, content: `Your NFT has been created!` },
+    ]);
+    setIsKrakenLoading(false);
+  };
+
   return (
     <Box
       height="100vh"
@@ -267,18 +292,11 @@ const App: React.FC = () => {
           zIndex={99}
         >
           {jobInfo?.speakers ? (
-            <Stack
-              height={"100%"}
-              justifyContent={"center"}
-              display={"flex"}
-              alignItems={"center"}
-              gap={4}
-            >
-              <VoiceSamples jobId={jobInfo.id} speakers={jobInfo.speakers} />
-              <Button variant="contained" color="primary">
-                Generate
-              </Button>
-            </Stack>
+            <VoiceSamples
+              jobId={jobInfo.id}
+              speakers={jobInfo.speakers}
+              onGenerate={onGenerate}
+            />
           ) : youtubeResults.length ? (
             <Box height={"100%"} display={"flex"} alignItems={"center"}>
               <Stack
