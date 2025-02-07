@@ -1,3 +1,4 @@
+import { Box } from "@mui/material";
 import React, { useEffect, useRef } from "react";
 
 interface Particle {
@@ -55,6 +56,55 @@ const styles = {
     opacity: 0,
     transition: "opacity 0.5s ease",
   },
+  avaTitle: {
+    position: "fixed" as const,
+    left: "50%",
+    top: "50%",
+    transform: "translate(-50%, -50%)",
+    zIndex: 11,
+    textAlign: "center" as const,
+    pointerEvents: "none",
+    opacity: 1,
+    transition: "opacity 0.5s ease",
+  },
+  avaText: {
+    fontFamily: "'Inter', sans-serif",
+    fontSize: "12rem",
+    fontWeight: 800,
+    color: "rgba(0, 255, 255, 0.15)",
+    textShadow: `
+      0 0 20px rgba(0, 255, 255, 0.3),
+      0 0 40px rgba(0, 255, 255, 0.2),
+      0 0 60px rgba(0, 255, 255, 0.1)
+    `,
+    letterSpacing: "1rem",
+    background:
+      "linear-gradient(180deg, rgba(0, 255, 255, 0.2) 0%, rgba(0, 255, 255, 0.1) 50%, rgba(0, 255, 255, 0.05) 100%)",
+    WebkitBackgroundClip: "text",
+    WebkitTextFillColor: "transparent",
+    animation: "textPulse 16s ease-in-out infinite",
+  },
+  avaSubtitle: {
+    fontFamily: "'Inter', sans-serif",
+    fontSize: "1.8rem",
+    fontWeight: 400,
+    color: "rgba(0, 255, 255, 0.2)",
+    letterSpacing: "0.8rem",
+    marginTop: "-2rem",
+    textTransform: "uppercase" as const,
+    animation: "textPulse 16s ease-in-out infinite",
+    animationDelay: "0.5s",
+    animationFillMode: "both",
+  },
+  keyframes: `
+    @keyframes textPulse {
+      0% { opacity: 0.2; }
+      25% { opacity: 1; }
+      50% { opacity: 0.2; }
+      75% { opacity: 0.2; }
+      100% { opacity: 0.2; }
+    }
+  `,
 };
 
 const KrakenEffect: React.FC<{ isLoading: boolean }> = ({ isLoading }) => {
@@ -372,7 +422,29 @@ const KrakenEffect: React.FC<{ isLoading: boolean }> = ({ isLoading }) => {
     }
   }, [isLoading]);
 
-  return <div ref={containerRef} style={styles.container} />;
+  // Add keyframes to document head
+  useEffect(() => {
+    const style = document.createElement("style");
+    style.textContent = styles.keyframes;
+    document.head.appendChild(style);
+
+    return () => {
+      document.head.removeChild(style);
+    };
+  }, []);
+
+  return (
+    <Box ref={containerRef} component="div" sx={styles.container}>
+      <Box component="div" sx={styles.avaTitle}>
+        <Box component="div" sx={styles.avaText}>
+          AVA
+        </Box>
+        <Box component="div" sx={styles.avaSubtitle}>
+          AI Voice Agent
+        </Box>
+      </Box>
+    </Box>
+  );
 };
 
 export default KrakenEffect;

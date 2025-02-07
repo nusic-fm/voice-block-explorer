@@ -10,6 +10,7 @@ import {
   PyannoteJob,
 } from "./services/db/pyannoteJobs.service";
 import VoiceSamples from "./components/VoiceSamples";
+import AnalyticsExplorer from "./components/AnalyticsExplorer";
 
 export type AudioFile = {
   filename: string;
@@ -30,7 +31,19 @@ const App: React.FC = () => {
       content: string;
     }[]
   >([]);
-  const [jobInfo, setJobInfo] = useState<PyannoteJob | null>(null);
+  // {
+  //     id: "9d8bc06b-1261-4f1d-8e41-854d0e6f7da3",
+  //     speakers: [
+  //       "SPEAKER_00_combined.mp3",
+  //       "SPEAKER_01_combined.mp3",
+  //       "SPEAKER_02_combined.mp3",
+  //     ],
+  //     status: "completed",
+  //     audioPath: "tts-yt-audio/9d8bc06b-1261-4f1d-8e41-854d0e6f7da3",
+  //     audioUrl:
+  //       "https://firebasestorage.googleapis.com/v0/b/nusic-ai-agent.appspot.com/o/tts-yt-audio%2F9d8bc06b-1261-4f1d-8e41-854d0e6f7da3%2FSPEAKER_00_combined.mp3?alt=media&token=61111111-1111-1111-1111-111111111111",
+  //   }
+  const [jobInfo, setJobInfo] = useState<PyannoteJob | null>();
   // const [audioFiles, setAudioFiles] = useState<AudioFile[]>([
   //   {
   //     filename: "sample1.mp3",
@@ -223,45 +236,58 @@ const App: React.FC = () => {
         width={"400px"}
         height={"100%"}
         ml={"auto"}
-        borderLeft={"1px solid rgba(0, 255, 255, 0.2)"}
+        borderRight={"1px solid rgba(0, 255, 255, 0.2)"}
         px={1}
-      ></Box>
+      >
+        <AnalyticsExplorer />
+      </Box>
       <Box width={"calc(100% - 800px)"} position={"relative"} height={"100%"}>
-        {(isKrakenLoading || !jobInfo) && !youtubeResults.length ? (
-          <KrakenEffect isLoading={isKrakenLoading} />
-        ) : !!jobInfo?.speakers ? (
-          <Stack
-            height={"100%"}
-            justifyContent={"center"}
-            display={"flex"}
-            alignItems={"center"}
-            gap={4}
-          >
-            <VoiceSamples jobId={jobInfo.id} speakers={jobInfo.speakers} />
-            <Button variant="contained" color="primary">
-              Generate
-            </Button>
-          </Stack>
-        ) : (
-          <Box height={"100%"} display={"flex"} alignItems={"center"}>
+        <KrakenEffect isLoading={isKrakenLoading} />
+        <Box
+          position={"relative"}
+          height={"100%"}
+          width={"100%"}
+          display={"flex"}
+          alignItems={"center"}
+          justifyContent={"center"}
+          zIndex={99}
+        >
+          {jobInfo?.speakers ? (
             <Stack
-              direction={"row"}
-              flexWrap={"wrap"}
+              height={"100%"}
               justifyContent={"center"}
-              // alignItems={"center"}
-              // height={"100%"}
+              display={"flex"}
+              alignItems={"center"}
               gap={4}
             >
-              {youtubeResults.map((result) => (
-                <VideoOption
-                  key={result.id}
-                  video={result}
-                  onVideoSelected={onVideoSelected}
-                />
-              ))}
+              <VoiceSamples jobId={jobInfo.id} speakers={jobInfo.speakers} />
+              <Button variant="contained" color="primary">
+                Generate
+              </Button>
             </Stack>
-          </Box>
-        )}
+          ) : youtubeResults.length ? (
+            <Box height={"100%"} display={"flex"} alignItems={"center"}>
+              <Stack
+                direction={"row"}
+                flexWrap={"wrap"}
+                justifyContent={"center"}
+                // alignItems={"center"}
+                // height={"100%"}
+                gap={4}
+              >
+                {youtubeResults.map((result) => (
+                  <VideoOption
+                    key={result.id}
+                    video={result}
+                    onVideoSelected={onVideoSelected}
+                  />
+                ))}
+              </Stack>
+            </Box>
+          ) : (
+            <Box></Box>
+          )}
+        </Box>
       </Box>
       <Box
         width={"400px"}

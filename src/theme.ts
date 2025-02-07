@@ -3,7 +3,7 @@ import WebFont from "webfontloader";
 
 WebFont.load({
   google: {
-    families: ["Roboto"],
+    families: ["Space Grotesk"],
   },
 });
 declare module "@mui/material/styles/createPalette" {
@@ -41,7 +41,7 @@ const themeSettings = createTheme({
     allVariants: {
       color: "#00ffff",
     },
-    fontFamily: `Roboto, sans-serif`,
+    fontFamily: `Space Grotesk, sans-serif`,
   },
 });
 const theme = responsiveFontSizes(themeSettings);
