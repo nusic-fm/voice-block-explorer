@@ -19,7 +19,7 @@ const themeSettings = createTheme({
   palette: {
     mode: "dark",
     primary: {
-      main: "#563FC8",
+      main: "#00ffff",
       light: "#000000",
     },
     secondary: {
@@ -39,7 +39,7 @@ const themeSettings = createTheme({
   },
   typography: {
     allVariants: {
-      color: "#fff",
+      color: "#00ffff",
     },
     fontFamily: `Roboto, sans-serif`,
   },
