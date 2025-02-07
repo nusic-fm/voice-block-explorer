@@ -1,10 +1,15 @@
-import { Box, Stack } from "@mui/material";
+import { Box, Button, Stack } from "@mui/material";
 import "./app.css";
 import AudioExplorerChat from "./components/AudioExplorerChat";
 import KrakenEffect from "./components/KrakenEffect";
 import { useState } from "react";
 import VideoOption from "./components/VideoOption";
 import axios from "axios";
+import {
+  getPyannoteJob,
+  PyannoteJob,
+} from "./services/db/pyannoteJobs.service";
+import VoiceSamples from "./components/VoiceSamples";
 
 export type AudioFile = {
   filename: string;
@@ -25,7 +30,7 @@ const App: React.FC = () => {
       content: string;
     }[]
   >([]);
-  const [jobId, setJobId] = useState<string | null>(null);
+  const [jobInfo, setJobInfo] = useState<PyannoteJob | null>(null);
   // const [audioFiles, setAudioFiles] = useState<AudioFile[]>([
   //   {
   //     filename: "sample1.mp3",
@@ -179,7 +184,9 @@ const App: React.FC = () => {
         { video_url }
       );
       const { jobId } = response.data;
-      setJobId(jobId);
+      getPyannoteJob(jobId, (job) => {
+        setIsKrakenLoading(false);
+      });
     } catch (e) {
       console.log(e);
     } finally {
@@ -203,12 +210,38 @@ const App: React.FC = () => {
   };
 
   return (
-    <Box height="100vh" width={"100vw"} display={"flex"}>
-      <Box width={"calc(100% - 400px)"} position={"relative"} height={"100%"}>
-        {youtubeResults.length === 0 && !jobId ? (
+    <Box
+      height="100vh"
+      width={"100vw"}
+      display={"flex"}
+      sx={{
+        background: "rgba(10, 10, 18, 0.96)",
+        backdropFilter: "blur(20px)",
+      }}
+    >
+      <Box
+        width={"400px"}
+        height={"100%"}
+        ml={"auto"}
+        borderLeft={"1px solid rgba(0, 255, 255, 0.2)"}
+        px={1}
+      ></Box>
+      <Box width={"calc(100% - 800px)"} position={"relative"} height={"100%"}>
+        {(isKrakenLoading || !jobInfo) && !youtubeResults.length ? (
           <KrakenEffect isLoading={isKrakenLoading} />
-        ) : jobId ? (
-          <Box height={"100%"} display={"flex"} alignItems={"center"}></Box>
+        ) : !!jobInfo?.speakers ? (
+          <Stack
+            height={"100%"}
+            justifyContent={"center"}
+            display={"flex"}
+            alignItems={"center"}
+            gap={4}
+          >
+            <VoiceSamples jobId={jobInfo.id} speakers={jobInfo.speakers} />
+            <Button variant="contained" color="primary">
+              Generate
+            </Button>
+          </Stack>
         ) : (
           <Box height={"100%"} display={"flex"} alignItems={"center"}>
             <Stack
@@ -230,7 +263,13 @@ const App: React.FC = () => {
           </Box>
         )}
       </Box>
-      <Box width={"400px"} height={"100%"} ml={"auto"}>
+      <Box
+        width={"400px"}
+        height={"100%"}
+        ml={"auto"}
+        borderLeft={"1px solid rgba(0, 255, 255, 0.2)"}
+        px={1}
+      >
         <AudioExplorerChat
           youtubeResults={youtubeResults}
           setYoutubeResults={setYoutubeResults}

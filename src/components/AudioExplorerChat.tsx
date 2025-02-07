@@ -139,7 +139,7 @@ const AudioExplorerChat = ({
         <Typography variant="h6" align="center">
           Audio Explorer Chat
         </Typography>
-        <Divider />
+        <Divider sx={{ borderColor: "rgba(0, 255, 255, 0.2)" }} />
         <Stack gap={2}>
           <Typography>
             Welcome! I can help you explore the audio samples. What would you
@@ -205,7 +205,7 @@ const AudioExplorerChat = ({
           )} */}
         </Stack>
       </Stack>
-      {(!!voiceName || youtubeResults.length === 0) && (
+      {youtubeResults.length === 0 && !isProcessStarted && (
         <Box
           marginTop="auto"
           display={"flex"}

@@ -4,4 +4,10 @@ const extractYoutubeId = (url: string) => {
   return match && match[2].length === 11 ? match[2] : null;
 };
 
-export { extractYoutubeId };
+const getSpeakerAudioUrl = (jobId: string, speaker: string) => {
+  return `${
+    import.meta.env.VITE_FIREBASE_STORAGE_URL
+  }/tts-yt-audio%2f${jobId}%2f${speaker}?alt=media`;
+};
+
+export { extractYoutubeId, getSpeakerAudioUrl };

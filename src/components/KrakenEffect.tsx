@@ -134,8 +134,12 @@ const KrakenEffect: React.FC<{ isLoading: boolean }> = ({ isLoading }) => {
   };
 
   const createFractals = () => {
-    const centerX = window.innerWidth / 2;
-    const centerY = window.innerHeight / 2;
+    const container = containerRef.current;
+    if (!container) return;
+
+    const rect = container.getBoundingClientRect();
+    const centerX = rect.width / 2;
+    const centerY = rect.height / 2;
 
     // Create main branches
     for (let i = 0; i < 8; i++) {
@@ -267,6 +271,10 @@ const KrakenEffect: React.FC<{ isLoading: boolean }> = ({ isLoading }) => {
     timeRef.current += 0.016;
     transformUpdatesRef.current.clear();
 
+    // Get container bounds once per frame
+    const container = containerRef.current;
+    const containerBounds = container?.getBoundingClientRect();
+
     particlesRef.current.forEach((particle) => {
       let x = particle.baseX;
       let y = particle.baseY;
@@ -280,22 +288,31 @@ const KrakenEffect: React.FC<{ isLoading: boolean }> = ({ isLoading }) => {
           (15 - particle.depth * 4);
 
         x += Math.cos(particle.angle!) * wave;
-        y += Math.sin(particle.angle!) * wave2;
+        y += Math.sin(particle.angle!) * wave;
       } else {
         particle.angle! += particle.speed! * 0.02;
-        const radius = particle.radius! * (1 + Math.sin(timeRef.current) * 0.1);
-        x = window.innerWidth / 2 + Math.cos(particle.angle!) * radius;
-        y = window.innerHeight / 2 + Math.sin(particle.angle!) * radius;
+        if (containerBounds) {
+          const radius =
+            particle.radius! * (1 + Math.sin(timeRef.current) * 0.1);
+          x = containerBounds.width / 2 + Math.cos(particle.angle!) * radius;
+          y = containerBounds.height / 2 + Math.sin(particle.angle!) * radius;
+        }
       }
 
-      const dx = mouseRef.current.x - x;
-      const dy = mouseRef.current.y - y;
-      const dist = Math.hypot(dx, dy);
+      // Calculate mouse position relative to container
+      if (containerBounds) {
+        const relativeMouseX = mouseRef.current.x - containerBounds.left;
+        const relativeMouseY = mouseRef.current.y - containerBounds.top;
 
-      if (dist < 150) {
-        const force = (1 - dist / 150) * 15;
-        x += (dx / dist) * force;
-        y += (dy / dist) * force;
+        const dx = relativeMouseX - x;
+        const dy = relativeMouseY - y;
+        const dist = Math.hypot(dx, dy);
+
+        if (dist < 150) {
+          const force = (1 - dist / 150) * 15;
+          x += (dx / dist) * force;
+          y += (dy / dist) * force;
+        }
       }
 
       transformUpdatesRef.current.set(
