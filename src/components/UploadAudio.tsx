@@ -5,7 +5,7 @@ import { uploadToYtAudioStorage } from "../services/storage/ytAudio.storage";
 
 interface UploadAudioProps {
   onUploadStarted?: () => void;
-  onUploadComplete?: (url: string) => void;
+  onUploadComplete?: (url: string, filename: string) => void;
 }
 
 const UploadAudio = ({ onUploadComplete }: UploadAudioProps) => {
@@ -39,7 +39,7 @@ const UploadAudio = ({ onUploadComplete }: UploadAudioProps) => {
 
       // Call the callback with the URL if provided
       if (onUploadComplete) {
-        onUploadComplete(downloadUrl);
+        onUploadComplete(downloadUrl, file.name);
       }
     } catch (err) {
       setError("Failed to upload file. Please try again.");

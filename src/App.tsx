@@ -49,13 +49,18 @@ const App: React.FC = () => {
     name: string;
     symbol: string;
   } | null>(null);
-  const fetchSpeakersUrl = async (video_url: string) => {
+
+  const fetchSpeakersUrl = async (
+    video_url: string,
+    isAudio: boolean = false,
+    audioPath?: string
+  ) => {
     try {
       const response = await axios.post(
-        `${
-          import.meta.env.VITE_AGENT_SERVER_URL
-        }/youtube-video-speakers-extraction`,
-        { video_url }
+        `${import.meta.env.VITE_AGENT_SERVER_URL}/${
+          isAudio ? "speakers-extraction" : "youtube-video-speakers-extraction"
+        }`,
+        isAudio ? { audio_url: video_url, audioPath } : { video_url }
       );
       const { jobId } = response.data;
       getPyannoteJob(jobId, (job) => {
@@ -250,10 +255,13 @@ const App: React.FC = () => {
                     {showUpload && (
                       <UploadAudio
                         onUploadStarted={() => setIsKrakenLoading(true)}
-                        onUploadComplete={(url: string) => {
-                          // TODO: upload to firestore
-                          setIsKrakenLoading(false);
+                        onUploadComplete={async (
+                          url: string,
+                          filename: string
+                        ) => {
                           setShowUpload(false);
+                          await fetchSpeakersUrl(url, true, filename);
+                          // setIsKrakenLoading(false);
                         }}
                       />
                     )}
