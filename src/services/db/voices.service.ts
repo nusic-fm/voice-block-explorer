@@ -6,10 +6,12 @@ const COLLECTION_NAME = "voices";
 export type Voice = {
   audioPath: string;
   name: string;
+  symbol: string;
   emotion: string;
   slug: string;
   audioUrl: string;
   jobId: string;
+  isNFTDeployed: boolean;
 };
 
 export const createVoice = async (voice: Voice) => {

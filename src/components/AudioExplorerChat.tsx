@@ -4,12 +4,19 @@ import {
   Typography,
   Box,
   TextField,
-  Button,
-  Chip,
   Divider,
+  Link,
 } from "@mui/material";
 import axios from "axios";
 import { useEffect, useState } from "react";
+
+export type Conversation = {
+  isUser: boolean;
+  content: string;
+  isHighlight?: boolean;
+  isError?: boolean;
+  link?: string;
+};
 
 type Props = {
   youtubeResults: { url: string; title: string; id: string }[];
@@ -23,18 +30,8 @@ type Props = {
   ) => void;
   onLoadingStarted: () => void;
   onLoadingCompleted: () => void;
-  conversations: {
-    isUser: boolean;
-    content: string;
-  }[];
-  setConversations: React.Dispatch<
-    React.SetStateAction<
-      {
-        isUser: boolean;
-        content: string;
-      }[]
-    >
-  >;
+  conversations: Conversation[];
+  setConversations: React.Dispatch<React.SetStateAction<Conversation[]>>;
 };
 
 const AudioExplorerChat = ({
@@ -118,6 +115,7 @@ const AudioExplorerChat = ({
         {
           isUser: false,
           content: "Oh no! I couldn't find any results. try again later!",
+          isError: true,
         },
       ]);
     } finally {
@@ -152,10 +150,31 @@ const AudioExplorerChat = ({
               <Stack gap={2}>
                 {conversation.isUser ? (
                   <Box display={"flex"} justifyContent={"end"}>
-                    <Chip label={conversation.content} />
+                    <Box
+                      sx={{
+                        backgroundColor: "primary.main",
+                        borderRadius: "20px 20px 4px 20px",
+                        padding: "6px 12px",
+                        maxWidth: "80%",
+                        color: "primary.contrastText",
+                        boxShadow: "0 1px 2px rgba(0, 0, 0, 0.1)",
+                        alignSelf: "flex-end",
+                      }}
+                    >
+                      <Typography color="black">
+                        {conversation.content}
+                      </Typography>
+                    </Box>
                   </Box>
                 ) : (
-                  <Box display={"flex"} gap={2} alignItems={"start"}>
+                  <Box
+                    display={"flex"}
+                    gap={2}
+                    alignItems={"start"}
+                    sx={{
+                      opacity: conversations.length - 3 < index ? 1 : 0.6,
+                    }}
+                  >
                     <img
                       src={"favicon.png"}
                       alt="agent"
@@ -163,7 +182,14 @@ const AudioExplorerChat = ({
                       height={30}
                     />
                     <Typography variant="subtitle1">
-                      {conversation.content}
+                      {conversation.isHighlight && <span>✨</span>}{" "}
+                      {conversation.isError && <span>🚨</span>}{" "}
+                      {conversation.content}{" "}
+                      {conversation.link && (
+                        <Link href={conversation.link} target="_blank">
+                          View on BaseScan
+                        </Link>
+                      )}
                     </Typography>
                   </Box>
                 )}

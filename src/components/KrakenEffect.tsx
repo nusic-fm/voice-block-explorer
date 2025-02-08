@@ -278,37 +278,19 @@ const KrakenEffect: React.FC<{ isLoading: boolean }> = ({ isLoading }) => {
     // Clear the existing loading interval
     clearInterval(loadingIntervalRef.current);
     loadingIntervalRef.current = null;
-
-    // If we haven't reached 95% yet, jump to it
-    if (loadingProgressRef.current < 95) {
-      loadingProgressRef.current = 95;
-      if (percentageDisplayRef.current) {
-        percentageDisplayRef.current.textContent = "95%";
-      }
+    loadingProgressRef.current = 100;
+    if (percentageDisplayRef.current) {
+      percentageDisplayRef.current.textContent = "100%";
+    }
+    if (percentageDisplayRef.current) {
+      percentageDisplayRef.current.style.opacity = "0";
     }
 
-    // Animate the final 5%
-    const finalInterval = setInterval(() => {
-      loadingProgressRef.current += 0.2; // Slower progress for the final 5%
-
-      const percentage = Math.min(100, Math.floor(loadingProgressRef.current));
-      if (percentageDisplayRef.current) {
-        percentageDisplayRef.current.textContent = `${percentage}%`;
-      }
-
-      if (loadingProgressRef.current >= 100) {
-        clearInterval(finalInterval);
-        if (percentageDisplayRef.current) {
-          percentageDisplayRef.current.style.opacity = "0";
-        }
-
-        // Reset particles to their original state
-        particlesRef.current.forEach((particle) => {
-          particle.assembleProgress = 0;
-          particle.element.style.opacity = "1";
-        });
-      }
-    }, 30);
+    // Reset particles to their original state
+    particlesRef.current.forEach((particle) => {
+      particle.assembleProgress = 0;
+      particle.element.style.opacity = "1";
+    });
   };
 
   const animate = (timestamp: number) => {

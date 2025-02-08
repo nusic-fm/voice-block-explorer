@@ -3,6 +3,7 @@
 import { initializeApp } from "firebase/app";
 import { getAnalytics, logEvent } from "firebase/analytics";
 import { getFirestore } from "firebase/firestore";
+import { getStorage } from "firebase/storage";
 // import { getStripePayments } from "@invertase/firestore-stripe-payments";
 // import { getAnalytics } from "firebase/analytics";
 // TODO: Add SDKs for Firebase products that you want to use
@@ -22,6 +23,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
 const db = getFirestore(app);
+const storage = getStorage(app);
 
 const logFirebaseEvent = (
   type: "login" | "sign_up" | "purchase" | "select_content" | "share" | "revox",
@@ -30,4 +32,4 @@ const logFirebaseEvent = (
   logEvent(analytics, type as any, additionalParams);
 };
 
-export { app, logFirebaseEvent, db, analytics };
+export { app, logFirebaseEvent, db, analytics, storage };

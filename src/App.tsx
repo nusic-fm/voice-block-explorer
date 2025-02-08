@@ -1,6 +1,8 @@
-import { Box, Button, Stack } from "@mui/material";
+import { Box, Stack } from "@mui/material";
 import "./app.css";
-import AudioExplorerChat from "./components/AudioExplorerChat";
+import AudioExplorerChat, {
+  Conversation,
+} from "./components/AudioExplorerChat";
 import KrakenEffect from "./components/KrakenEffect";
 import { useState } from "react";
 import VideoOption from "./components/VideoOption";
@@ -13,6 +15,7 @@ import VoiceSamples from "./components/VoiceSamples";
 import AnalyticsExplorer from "./components/AnalyticsExplorer";
 import { createVoice } from "./services/db/voices.service";
 import { getSpeakerAudioUrl } from "./helper";
+import UploadAudio from "./components/UploadAudio";
 
 export type AudioFile = {
   filename: string;
@@ -27,12 +30,14 @@ const App: React.FC = () => {
     { url: string; title: string; id: string; description: string }[]
   >([]);
   const [isKrakenLoading, setIsKrakenLoading] = useState<boolean>(false);
-  const [conversations, setConversations] = useState<
-    {
-      isUser: boolean;
-      content: string;
-    }[]
-  >([]);
+  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [showUpload, setShowUpload] = useState<boolean>(false);
+  const [selectedVideo, setSelectedVideo] = useState<{
+    url: string;
+    title: string;
+    id: string;
+    description: string;
+  } | null>(null);
   // {
   //     id: "9d8bc06b-1261-4f1d-8e41-854d0e6f7da3",
   //     speakers: [
@@ -46,6 +51,10 @@ const App: React.FC = () => {
   //       "https://firebasestorage.googleapis.com/v0/b/nusic-ai-agent.appspot.com/o/tts-yt-audio%2F9d8bc06b-1261-4f1d-8e41-854d0e6f7da3%2FSPEAKER_00_combined.mp3?alt=media&token=61111111-1111-1111-1111-111111111111",
   //   }
   const [jobInfo, setJobInfo] = useState<PyannoteJob | null>();
+  const [nftInfo, setNftInfo] = useState<{
+    name: string;
+    symbol: string;
+  } | null>(null);
   // const [audioFiles, setAudioFiles] = useState<AudioFile[]>([
   //   {
   //     filename: "sample1.mp3",
@@ -216,10 +225,48 @@ const App: React.FC = () => {
           ]);
         }
       });
-    } catch (e) {
-      console.log(e);
+      if (selectedVideo || conversations.length > 0) {
+        try {
+          const response = await axios.post(
+            `${import.meta.env.VITE_AGENT_SERVER_URL}/fetch-nft-info`,
+            {
+              text: selectedVideo?.title || conversations[0].content,
+            }
+          );
+          console.log(response.data);
+          const { nftInfo } = response.data;
+          setNftInfo(nftInfo);
+          setConversations((prev) => [
+            ...prev,
+            {
+              isUser: false,
+              content: `My suggestion for the name of your NFT is: ${nftInfo.name} (symbol: ${nftInfo.symbol})`,
+              isHighlight: true,
+            },
+          ]);
+        } catch (e) {
+          console.log(e);
+        }
+      }
+    } catch (e: any) {
+      setIsKrakenLoading(false);
+      if (e.response.data.type === "YOUTUBE_DOWNLOAD") {
+        setShowUpload(true);
+        setConversations((prev) => [
+          ...prev,
+          {
+            isUser: false,
+            content: "Oh uh! One of the services is down!",
+            isError: true,
+          },
+          {
+            isUser: false,
+            content: "Meanwhile, you can try uploading the audio yourself",
+            isHighlight: true,
+          },
+        ]);
+      }
     } finally {
-      // setIsKrakenLoading(false);
     }
   };
 
@@ -229,11 +276,15 @@ const App: React.FC = () => {
     id: string;
     description: string;
   }) => {
+    setSelectedVideo(video);
     setYoutubeResults([]);
     setIsKrakenLoading(true);
     setConversations((prev) => [
       ...prev,
-      { isUser: false, content: `Processing your selection...` },
+      {
+        isUser: false,
+        content: `Processing your selection "${video.title}"`,
+      },
     ]);
     await fetchSpeakersUrl(video.url);
   };
@@ -248,17 +299,52 @@ const App: React.FC = () => {
     if (!jobInfo?.id) return;
     await createVoice({
       audioPath: speakerPath,
-      name: "New Voice",
+      name: nftInfo?.name || "---",
+      symbol: nftInfo?.symbol || "---",
       emotion: "Happy",
-      slug: "new-voice",
+      slug: nftInfo?.name.toLowerCase().replace(/ /g, "-") || "--",
       jobId: jobInfo.id,
       audioUrl: getSpeakerAudioUrl(jobInfo.id, speakerPath),
+      isNFTDeployed: false,
     });
     setConversations((prev) => [
       ...prev,
-      { isUser: false, content: `Your NFT has been created!` },
+      { isUser: false, content: `Your NFT is being deployed!` },
     ]);
-    setIsKrakenLoading(false);
+    try {
+      const res = await axios.post(
+        `${import.meta.env.VITE_AGENT_SERVER_URL}/deploy-nft`,
+        {
+          voice_name: nftInfo?.name,
+          nft_name: nftInfo?.name,
+          nft_symbol: nftInfo?.symbol,
+        }
+      );
+      const tx = res.data.tx;
+      if (tx) {
+        setConversations((prev) => [
+          ...prev,
+          {
+            isUser: false,
+            content: `Your NFT is deployed!`,
+            link: `${import.meta.env.VITE_BASESCAN_URL}/${tx}`,
+            isHighlight: true,
+          },
+        ]);
+      } else {
+        setConversations((prev) => [
+          ...prev,
+          {
+            isUser: false,
+            content: `Error deploying your NFT, please try again later.`,
+          },
+        ]);
+      }
+    } catch (e) {
+      console.log(e);
+    } finally {
+      setIsKrakenLoading(false);
+    }
   };
 
   return (
@@ -297,7 +383,7 @@ const App: React.FC = () => {
               speakers={jobInfo.speakers}
               onGenerate={onGenerate}
             />
-          ) : youtubeResults.length ? (
+          ) : youtubeResults.length || showUpload ? (
             <Box height={"100%"} display={"flex"} alignItems={"center"}>
               <Stack
                 direction={"row"}
@@ -307,6 +393,16 @@ const App: React.FC = () => {
                 // height={"100%"}
                 gap={4}
               >
+                {showUpload && (
+                  <UploadAudio
+                    onUploadStarted={() => setIsKrakenLoading(true)}
+                    onUploadComplete={(url: string) => {
+                      // TODO: upload to firestore
+                      setIsKrakenLoading(false);
+                      setShowUpload(false);
+                    }}
+                  />
+                )}
                 {youtubeResults.map((result) => (
                   <VideoOption
                     key={result.id}
