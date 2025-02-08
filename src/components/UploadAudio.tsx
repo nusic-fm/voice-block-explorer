@@ -30,6 +30,7 @@ const UploadAudio = ({ onUploadComplete }: UploadAudioProps) => {
 
   const handleUpload = async (file: File) => {
     if (!validateFile(file)) return;
+    const audioPath = encodeURIComponent(file.name);
 
     try {
       setError(null);
@@ -39,7 +40,7 @@ const UploadAudio = ({ onUploadComplete }: UploadAudioProps) => {
 
       // Call the callback with the URL if provided
       if (onUploadComplete) {
-        onUploadComplete(downloadUrl, file.name);
+        onUploadComplete(downloadUrl, audioPath);
       }
     } catch (err) {
       setError("Failed to upload file. Please try again.");

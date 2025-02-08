@@ -53,14 +53,14 @@ const App: React.FC = () => {
   const fetchSpeakersUrl = async (
     video_url: string,
     isAudio: boolean = false,
-    audioPath?: string
+    audio_path?: string
   ) => {
     try {
       const response = await axios.post(
         `${import.meta.env.VITE_AGENT_SERVER_URL}/${
           isAudio ? "speakers-extraction" : "youtube-video-speakers-extraction"
         }`,
-        isAudio ? { audio_url: video_url, audioPath } : { video_url }
+        isAudio ? { audio_url: video_url, audio_path } : { video_url }
       );
       const { jobId } = response.data;
       getPyannoteJob(jobId, (job) => {
