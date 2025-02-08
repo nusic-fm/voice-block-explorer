@@ -7,11 +7,11 @@ export type Voice = {
   audioPath: string;
   name: string;
   symbol: string;
-  emotion: string;
-  slug: string;
   audioUrl: string;
   jobId: string;
   isNFTDeployed: boolean;
+  yVid?: string;
+  emoji?: string;
 };
 
 export const createVoice = async (voice: Voice) => {
