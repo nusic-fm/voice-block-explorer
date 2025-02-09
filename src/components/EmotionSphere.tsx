@@ -16,6 +16,7 @@ import { collection } from "firebase/firestore";
 import { db } from "../services/firebase.service";
 import { LoadingButton } from "@mui/lab";
 import { textToSpeech } from "../helper";
+import AudioPlayer from "./AudioPlayer";
 
 // Styled components
 const VisualizationContainer = styled(Box)(({ theme }) => ({
@@ -625,9 +626,17 @@ const EmotionSphere: React.FC = () => {
           }}
           gap={2}
         >
-          <Typography variant="h6">{selectedNode?.name}</Typography>
+          <Typography variant="h6">
+            {selectedNode?.emoji} {selectedNode?.name}
+          </Typography>
           <Divider />
-          <Box my={4}>
+          <Stack gap={2}>
+            <AudioPlayer
+              src={selectedNode?.audioUrl || ""}
+              title="Original Audio"
+            />
+          </Stack>
+          <Box mt={4}>
             <TextField
               fullWidth
               label="What would you like to hear?"
@@ -638,7 +647,7 @@ const EmotionSphere: React.FC = () => {
           </Box>
           <Box display="flex" justifyContent="center" alignItems="center">
             {convertedAudioUrl ? (
-              <audio src={convertedAudioUrl} controls />
+              <AudioPlayer src={convertedAudioUrl} title="Generated Audio" />
             ) : (
               <LoadingButton
                 loading={isGenerating}

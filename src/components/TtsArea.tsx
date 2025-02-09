@@ -12,6 +12,7 @@ import {
   VoiceDoc,
 } from "../services/db/voices.service";
 import { textToSpeech } from "../helper";
+import AudioPlayer from "./AudioPlayer";
 
 type Props = {
   voice: VoiceDoc;
@@ -60,7 +61,7 @@ const TtsArea = ({ voice, ttsInput }: Props) => {
       <Box display="flex" justifyContent="center" alignItems="center">
         <IconButton>
           {convertedAudioUrl ? (
-            <audio src={convertedAudioUrl} controls />
+            <AudioPlayer src={convertedAudioUrl} title="Agent Audio" />
           ) : (
             <CircularProgress />
           )}
