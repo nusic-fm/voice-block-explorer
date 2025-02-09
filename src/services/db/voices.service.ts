@@ -18,6 +18,10 @@ export type Voice = {
   tweetId?: string;
 };
 
+export type VoiceDoc = Voice & {
+  id: string;
+};
+
 export const createVoice = async (voice: Voice) => {
   const voiceRef = collection(db, COLLECTION_NAME);
   const docRef = await addDoc(voiceRef, voice);
@@ -28,4 +32,10 @@ export const getVoices = async () => {
   const voiceRef = collection(db, COLLECTION_NAME);
   const snapshot = await getDocs(voiceRef);
   return snapshot.docs.map((doc) => doc.data());
+};
+
+export const createTtsConversion = async (voice: VoiceDoc, ttsText: string) => {
+  const ttsRef = collection(db, COLLECTION_NAME, voice.id, "tts");
+  const docRef = await addDoc(ttsRef, { text: ttsText });
+  return docRef.id;
 };

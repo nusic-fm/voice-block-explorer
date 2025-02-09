@@ -1,10 +1,10 @@
-import { Box, Stack } from "@mui/material";
+import { Box, Button, Stack, Typography } from "@mui/material";
 import "./app.css";
 import AudioExplorerChat, {
   Conversation,
 } from "./components/AudioExplorerChat";
 import KrakenEffect from "./components/KrakenEffect";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import VideoOption from "./components/VideoOption";
 import axios from "axios";
 import {
@@ -13,10 +13,11 @@ import {
 } from "./services/db/pyannoteJobs.service";
 import VoiceSamples from "./components/VoiceSamples";
 import AnalyticsExplorer from "./components/AnalyticsExplorer";
-import { createVoice } from "./services/db/voices.service";
+import { createVoice, Voice, VoiceDoc } from "./services/db/voices.service";
 import { getSpeakerAudioUrl } from "./helper";
 import UploadAudio from "./components/UploadAudio";
 import EmotionSphere from "./components/EmotionSphere";
+import TtsArea from "./components/TtsArea";
 
 export type TwitterResult = {
   id: string;
@@ -41,6 +42,9 @@ const App: React.FC = () => {
     null
   );
   const [showEmotionSphere, setShowEmotionSphere] = useState<boolean>(false);
+  const [showTts, setShowTts] = useState<boolean>(true);
+  const [selectedVoice, setSelectedVoice] = useState<VoiceDoc | null>(null);
+  const [ttsInput, setTtsInput] = useState<string>("");
   // {
   //     id: "9d8bc06b-1261-4f1d-8e41-854d0e6f7da3",
   //     speakers: [
@@ -53,7 +57,7 @@ const App: React.FC = () => {
   //     audioUrl:
   //       "https://firebasestorage.googleapis.com/v0/b/nusic-ai-agent.appspot.com/o/tts-yt-audio%2F9d8bc06b-1261-4f1d-8e41-854d0e6f7da3%2FSPEAKER_00_combined.mp3?alt=media&token=61111111-1111-1111-1111-111111111111",
   //   }
-  const [jobInfo, setJobInfo] = useState<PyannoteJob | null>();
+  const [jobInfo, setJobInfo] = useState<PyannoteJob | null>(null);
   const [nftInfo, setNftInfo] = useState<{
     name: string;
     symbol: string;
@@ -85,7 +89,7 @@ const App: React.FC = () => {
               content:
                 speakers.length > 1
                   ? `There was more than one voice in that video, could you listen to these clips and select which voice it is you wish your agent to have?`
-                  : `One speaker detected. Click Generate to create your NFT...`,
+                  : `One speaker detected. Click Choose Speaker 1 to create your NFT...`,
             },
           ]);
         }
@@ -151,13 +155,14 @@ const App: React.FC = () => {
 
   const onGenerate = async (speakerPath: string) => {
     setIsKrakenLoading(true);
+    setJobInfo(null);
 
     setConversations((prev) => [
       ...prev,
       { isUser: false, content: `Generating your NFT...` },
     ]);
     if (!jobInfo?.id) return;
-    await createVoice({
+    const _voice: Voice = {
       audioPath: speakerPath,
       name: nftInfo?.name || "---",
       symbol: nftInfo?.symbol || "---",
@@ -169,10 +174,11 @@ const App: React.FC = () => {
       twitterUsername: selectedVideo?.username,
       tweetId: selectedVideo?.id,
       tweetVideoUrl: selectedVideo?.videoUrl,
-    });
+    };
+    const voiceId = await createVoice(_voice);
     setConversations((prev) => [
       ...prev,
-      { isUser: false, content: `Your NFT is being deployed!` },
+      { isUser: false, content: `Creating your NFT...` },
     ]);
     try {
       const res = await axios.post(
@@ -185,6 +191,7 @@ const App: React.FC = () => {
       );
       const tx = res.data.tx;
       if (tx) {
+        setSelectedVoice({ ..._voice, id: voiceId });
         setConversations((prev) => [
           ...prev,
           {
@@ -193,7 +200,13 @@ const App: React.FC = () => {
             link: `${import.meta.env.VITE_BASESCAN_URL}/${tx}`,
             isHighlight: true,
           },
+          {
+            isUser: false,
+            content: `You can now do Text to Speech with your NFT! Type in something to hear it in the chosen voice!`,
+            isHighlight: true,
+          },
         ]);
+        setShowTts(true);
       } else {
         setConversations((prev) => [
           ...prev,
@@ -207,9 +220,15 @@ const App: React.FC = () => {
       console.log(e);
     } finally {
       setIsKrakenLoading(false);
-      setShowEmotionSphere(true);
+      // setShowEmotionSphere(true);
     }
   };
+
+  useEffect(() => {
+    if (twitterResults.length > 0) {
+      setShowEmotionSphere(false);
+    }
+  }, [twitterResults]);
 
   return (
     <Box
@@ -278,8 +297,8 @@ const App: React.FC = () => {
                       display={"flex"}
                       flexWrap={"wrap"}
                       gap={4}
-                      height={"80%"}
-                      px={1}
+                      height={"90%"}
+                      p={1}
                       sx={{ overflowY: "auto" }}
                     >
                       {twitterResults.map((result) => (
@@ -292,8 +311,24 @@ const App: React.FC = () => {
                     </Box>
                   </Stack>
                 </Box>
+              ) : showTts && selectedVoice ? (
+                <Box>
+                  <TtsArea ttsInput={ttsInput} voice={selectedVoice} />
+                </Box>
               ) : (
-                <Box></Box>
+                <Box mt="auto">
+                  <Button
+                    size="small"
+                    variant="text"
+                    onClick={() => setShowEmotionSphere(true)}
+                    sx={{
+                      opacity: 0.8,
+                      mb: 1,
+                    }}
+                  >
+                    Go to Explorer
+                  </Button>
+                </Box>
               )}
             </Box>
           </>
@@ -313,6 +348,9 @@ const App: React.FC = () => {
           onLoadingCompleted={() => setIsKrakenLoading(false)}
           conversations={conversations}
           setConversations={setConversations}
+          showTts={showTts}
+          ttsInput={ttsInput}
+          setTtsInput={setTtsInput}
         />
       </Box>
     </Box>

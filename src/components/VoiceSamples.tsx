@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { getSpeakerAudioUrl } from "../helper";
-import { Button, IconButton, Stack, Typography } from "@mui/material";
+import { Button, CircularProgress, IconButton, Stack } from "@mui/material";
 import PauseIcon from "@mui/icons-material/Pause";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 
@@ -13,6 +13,8 @@ type Props = {
 const VoiceSamples = ({ jobId, speakers, onGenerate }: Props) => {
   const [playing, setPlaying] = useState<string | null>(null);
   const [audio, setAudio] = useState<HTMLAudioElement | null>(null);
+  const [loadingSpeaker, setLoadingSpeaker] = useState<string | null>(null);
+  const [disabled, setDisabled] = useState<boolean>(false);
 
   const handlePlay = async (speaker: string) => {
     if (playing === speaker) {
@@ -27,6 +29,7 @@ const VoiceSamples = ({ jobId, speakers, onGenerate }: Props) => {
       audio.currentTime = 0;
     }
 
+    setLoadingSpeaker(speaker);
     try {
       // Get audio URL from Firebase
       const url = getSpeakerAudioUrl(jobId, speaker);
@@ -54,6 +57,8 @@ const VoiceSamples = ({ jobId, speakers, onGenerate }: Props) => {
       console.error("Error playing audio:", error);
       setPlaying(null);
       setAudio(null);
+    } finally {
+      setLoadingSpeaker(null);
     }
   };
 
@@ -76,26 +81,35 @@ const VoiceSamples = ({ jobId, speakers, onGenerate }: Props) => {
             alignItems={"center"}
             justifyContent={"center"}
             gap={2}
+            onClick={() => handlePlay(speaker)}
+            sx={{ cursor: "pointer" }}
           >
-            <IconButton
-              onClick={() => handlePlay(speaker)}
-              size="large"
-              sx={{ border: "1px solid #00ffff" }}
-            >
-              {playing === speaker ? <PauseIcon /> : <PlayArrowIcon />}
+            <IconButton size="large" sx={{ border: "1px solid #00ffff" }}>
+              {loadingSpeaker === speaker ? (
+                <CircularProgress size={20} />
+              ) : playing === speaker ? (
+                <PauseIcon />
+              ) : (
+                <PlayArrowIcon />
+              )}
             </IconButton>
-            <Typography>Speaker {i + 1}</Typography>
+            <Button
+              disabled={disabled}
+              size="small"
+              variant="contained"
+              color="primary"
+              onClick={(e) => {
+                e.stopPropagation();
+                setDisabled(true);
+                audio?.pause();
+                onGenerate(speaker);
+              }}
+            >
+              Choose Speaker {i + 1}
+            </Button>
           </Stack>
         ))}
       </Stack>
-      <Button
-        disabled={!playing}
-        variant="contained"
-        color="primary"
-        onClick={() => playing && onGenerate(playing)}
-      >
-        Generate
-      </Button>
     </Stack>
   );
 };

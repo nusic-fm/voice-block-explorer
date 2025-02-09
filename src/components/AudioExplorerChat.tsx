@@ -26,6 +26,9 @@ type Props = {
   onLoadingCompleted: () => void;
   conversations: Conversation[];
   setConversations: React.Dispatch<React.SetStateAction<Conversation[]>>;
+  showTts: boolean;
+  ttsInput: string;
+  setTtsInput: React.Dispatch<React.SetStateAction<string>>;
 };
 
 const AudioExplorerChat = ({
@@ -35,6 +38,9 @@ const AudioExplorerChat = ({
   onLoadingCompleted,
   conversations,
   setConversations,
+  showTts,
+  ttsInput,
+  setTtsInput,
 }: Props) => {
   const [currentPrompt, setCurrentPrompt] = useState<string>("");
   const [voiceName, setVoiceName] = useState<string | null>(null);
@@ -225,7 +231,7 @@ const AudioExplorerChat = ({
           )} */}
         </Stack>
       </Stack>
-      {twitterResults.length === 0 && !isProcessStarted && (
+      {((twitterResults.length === 0 && !isProcessStarted) || showTts) && (
         <Box
           marginTop="auto"
           display={"flex"}
@@ -236,7 +242,9 @@ const AudioExplorerChat = ({
           <TextField
             fullWidth
             variant="outlined"
-            placeholder="Find your character"
+            placeholder={
+              showTts ? "What would you like to hear?" : "Find your character"
+            }
             value={currentPrompt}
             onChange={(e) => setCurrentPrompt(e.target.value)}
             disabled={isLoading || !!voiceName}

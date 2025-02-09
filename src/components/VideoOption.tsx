@@ -1,4 +1,4 @@
-import { Box, Typography, Button } from "@mui/material";
+import { Box, Typography, Button, Stack } from "@mui/material";
 import React from "react";
 import { TwitterResult } from "../App";
 
@@ -11,23 +11,23 @@ const VideoOption: React.FC<VideoProps> = ({ video, onVideoSelected }) => {
   const [isHovered, setIsHovered] = React.useState(false);
 
   return (
-    <Box
+    <Stack
       width={280}
-      height={240}
+      height={260}
       borderRadius={1}
       onMouseEnter={() => setIsHovered(true)}
       // onMouseLeave={() => setIsHovered(false)}
+      justifyContent={"space-between"}
       sx={{
-        outline: "1px solid #00ffff",
         position: "relative",
+        outline: "1px solid rgba(0, 255, 255, 0.8)",
         "&:hover": {
           transform: "translateY(-5px)",
           boxShadow: "0 0 20px rgba(0, 255, 255, 0.2)",
-          borderColor: "rgba(0, 255, 255, 0.8)",
         },
       }}
     >
-      <Box sx={{ position: "relative", height: 160 }}>
+      <Box sx={{ height: 160 }} display={"flex"} justifyContent={"center"}>
         {isHovered ? (
           <video
             style={{
@@ -66,15 +66,7 @@ const VideoOption: React.FC<VideoProps> = ({ video, onVideoSelected }) => {
           </Box>
         )} */}
       </Box>
-      <Box
-        sx={{
-          padding: "1rem",
-          flexGrow: 1,
-          display: "flex",
-          flexDirection: "column",
-          gap: "0.5rem",
-        }}
-      >
+      <Stack justifyContent={"space-between"} px={1} gap={1}>
         <Box sx={{ fontSize: "1.1rem", fontWeight: "500" }}>
           <Typography
             sx={{
@@ -92,7 +84,7 @@ const VideoOption: React.FC<VideoProps> = ({ video, onVideoSelected }) => {
             alignItems: "center",
             justifyContent: "space-between",
           }}
-          mt={1}
+          py={1}
         >
           <Typography
             variant="caption"
@@ -120,8 +112,8 @@ const VideoOption: React.FC<VideoProps> = ({ video, onVideoSelected }) => {
             Select
           </Button>
         </Box>
-      </Box>
-    </Box>
+      </Stack>
+    </Stack>
   );
 };
 
