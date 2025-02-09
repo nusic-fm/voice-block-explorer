@@ -12,6 +12,10 @@ export type Voice = {
   isNFTDeployed: boolean;
   yVid?: string;
   emoji?: string;
+  tweetTitle?: string;
+  twitterUsername?: string;
+  tweetVideoUrl?: string;
+  tweetId?: string;
 };
 
 export const createVoice = async (voice: Voice) => {

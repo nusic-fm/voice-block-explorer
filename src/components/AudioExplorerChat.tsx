@@ -9,6 +9,7 @@ import {
 } from "@mui/material";
 import axios from "axios";
 import { useEffect, useState } from "react";
+import { TwitterResult } from "../App";
 
 export type Conversation = {
   isUser: boolean;
@@ -19,15 +20,8 @@ export type Conversation = {
 };
 
 type Props = {
-  youtubeResults: { url: string; title: string; id: string }[];
-  setYoutubeResults: (
-    results: {
-      url: string;
-      title: string;
-      id: string;
-      description: string;
-    }[]
-  ) => void;
+  twitterResults: TwitterResult[];
+  setTwitterResults: React.Dispatch<React.SetStateAction<TwitterResult[]>>;
   onLoadingStarted: () => void;
   onLoadingCompleted: () => void;
   conversations: Conversation[];
@@ -35,8 +29,8 @@ type Props = {
 };
 
 const AudioExplorerChat = ({
-  youtubeResults,
-  setYoutubeResults,
+  twitterResults,
+  setTwitterResults,
   onLoadingStarted,
   onLoadingCompleted,
   conversations,
@@ -95,12 +89,12 @@ const AudioExplorerChat = ({
     const searchText = currentPrompt;
     try {
       const response = await axios.post(
-        `${import.meta.env.VITE_AGENT_SERVER_URL}/voice-youtube-results`,
+        `${import.meta.env.VITE_AGENT_SERVER_URL}/find-twitter-videos`,
         {
-          voice_name: searchText,
+          text: searchText,
         }
       );
-      setYoutubeResults(response.data);
+      setTwitterResults(response.data);
       setConversations((prev) => [
         ...prev,
         {
@@ -231,7 +225,7 @@ const AudioExplorerChat = ({
           )} */}
         </Stack>
       </Stack>
-      {youtubeResults.length === 0 && !isProcessStarted && (
+      {twitterResults.length === 0 && !isProcessStarted && (
         <Box
           marginTop="auto"
           display={"flex"}

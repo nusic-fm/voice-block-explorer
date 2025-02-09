@@ -18,19 +18,28 @@ import { getSpeakerAudioUrl } from "./helper";
 import UploadAudio from "./components/UploadAudio";
 import EmotionSphere from "./components/EmotionSphere";
 
+export type TwitterResult = {
+  id: string;
+  text: string;
+  videoId: string;
+  videoPreview: string;
+  videoUrl: string;
+  views: number;
+  likes: number;
+  username: string;
+};
+
 const App: React.FC = () => {
-  const [youtubeResults, setYoutubeResults] = useState<
-    { url: string; title: string; id: string; description: string }[]
-  >([]);
+  // const [youtubeResults, setYoutubeResults] = useState<
+  //   { url: string; title: string; id: string; description: string }[]
+  // >([]);
+  const [twitterResults, setTwitterResults] = useState<TwitterResult[]>([]);
   const [isKrakenLoading, setIsKrakenLoading] = useState<boolean>(false);
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [showUpload, setShowUpload] = useState<boolean>(false);
-  const [selectedVideo, setSelectedVideo] = useState<{
-    url: string;
-    title: string;
-    id: string;
-    description: string;
-  } | null>(null);
+  const [selectedVideo, setSelectedVideo] = useState<TwitterResult | null>(
+    null
+  );
   const [showEmotionSphere, setShowEmotionSphere] = useState<boolean>(false);
   // {
   //     id: "9d8bc06b-1261-4f1d-8e41-854d0e6f7da3",
@@ -53,14 +62,15 @@ const App: React.FC = () => {
   const fetchSpeakersUrl = async (
     video_url: string,
     isAudio: boolean = false,
-    audio_path?: string
+    audio_path?: string,
+    video_id?: string
   ) => {
     try {
       const response = await axios.post(
         `${import.meta.env.VITE_AGENT_SERVER_URL}/${
-          isAudio ? "speakers-extraction" : "youtube-video-speakers-extraction"
+          isAudio ? "speakers-extraction" : "video-speakers-extraction"
         }`,
-        isAudio ? { audio_url: video_url, audio_path } : { video_url }
+        isAudio ? { audio_url: video_url, audio_path } : { video_url, video_id }
       );
       const { jobId } = response.data;
       getPyannoteJob(jobId, (job) => {
@@ -85,7 +95,7 @@ const App: React.FC = () => {
           const response = await axios.post(
             `${import.meta.env.VITE_AGENT_SERVER_URL}/fetch-nft-info`,
             {
-              text: selectedVideo?.title || conversations[0].content,
+              text: conversations[0].content,
             }
           );
           console.log(response.data);
@@ -105,7 +115,7 @@ const App: React.FC = () => {
       }
     } catch (e: any) {
       setIsKrakenLoading(false);
-      if (e.response.data.type === "YOUTUBE_DOWNLOAD") {
+      if (e.response.data.type === "VIDEO_DOWNLOAD") {
         setShowUpload(true);
         setConversations((prev) => [
           ...prev,
@@ -125,23 +135,18 @@ const App: React.FC = () => {
     }
   };
 
-  const onVideoSelected = async (video: {
-    url: string;
-    title: string;
-    id: string;
-    description: string;
-  }) => {
+  const onVideoSelected = async (video: TwitterResult) => {
     setSelectedVideo(video);
-    setYoutubeResults([]);
+    setTwitterResults([]);
     setIsKrakenLoading(true);
     setConversations((prev) => [
       ...prev,
       {
         isUser: false,
-        content: `Processing your selection "${video.title}"`,
+        content: `Processing your selection "${video.text}"`,
       },
     ]);
-    await fetchSpeakersUrl(video.url);
+    await fetchSpeakersUrl(video.videoUrl, false, undefined, video.videoId);
   };
 
   const onGenerate = async (speakerPath: string) => {
@@ -159,7 +164,11 @@ const App: React.FC = () => {
       jobId: jobInfo.id,
       audioUrl: getSpeakerAudioUrl(jobInfo.id, speakerPath),
       isNFTDeployed: false,
-      yVid: selectedVideo?.id,
+      yVid: selectedVideo?.videoId,
+      tweetTitle: selectedVideo?.text,
+      twitterUsername: selectedVideo?.username,
+      tweetId: selectedVideo?.id,
+      tweetVideoUrl: selectedVideo?.videoUrl,
     });
     setConversations((prev) => [
       ...prev,
@@ -242,14 +251,14 @@ const App: React.FC = () => {
                   speakers={jobInfo.speakers}
                   onGenerate={onGenerate}
                 />
-              ) : youtubeResults.length || showUpload ? (
+              ) : twitterResults.length || showUpload ? (
                 <Box height={"100%"} display={"flex"} alignItems={"center"}>
                   <Stack
                     direction={"row"}
                     flexWrap={"wrap"}
                     justifyContent={"center"}
-                    // alignItems={"center"}
-                    // height={"100%"}
+                    alignItems={"center"}
+                    height={"100%"}
                     gap={4}
                   >
                     {showUpload && (
@@ -265,13 +274,22 @@ const App: React.FC = () => {
                         }}
                       />
                     )}
-                    {youtubeResults.map((result) => (
-                      <VideoOption
-                        key={result.id}
-                        video={result}
-                        onVideoSelected={onVideoSelected}
-                      />
-                    ))}
+                    <Box
+                      display={"flex"}
+                      flexWrap={"wrap"}
+                      gap={4}
+                      height={"80%"}
+                      px={1}
+                      sx={{ overflowY: "auto" }}
+                    >
+                      {twitterResults.map((result) => (
+                        <VideoOption
+                          key={result.videoId}
+                          video={result}
+                          onVideoSelected={onVideoSelected}
+                        />
+                      ))}
+                    </Box>
                   </Stack>
                 </Box>
               ) : (
@@ -289,8 +307,8 @@ const App: React.FC = () => {
         px={1}
       >
         <AudioExplorerChat
-          youtubeResults={youtubeResults}
-          setYoutubeResults={setYoutubeResults}
+          twitterResults={twitterResults}
+          setTwitterResults={setTwitterResults}
           onLoadingStarted={() => setIsKrakenLoading(true)}
           onLoadingCompleted={() => setIsKrakenLoading(false)}
           conversations={conversations}
