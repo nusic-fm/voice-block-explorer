@@ -205,7 +205,7 @@ const App: React.FC = () => {
           },
           {
             isUser: false,
-            content: `You can now do Text to Speech with your NFT! Type in something to hear it in the chosen voice!`,
+            content: `You can now do Text to Speech with your Audio Dataset! Type in something to hear it in the chosen voice!`,
             isHighlight: true,
           },
         ]);

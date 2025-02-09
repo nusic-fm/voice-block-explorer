@@ -1,11 +1,12 @@
 import {
+  Button,
   CircularProgress,
   Divider,
   IconButton,
   Stack,
   Typography,
+  Box,
 } from "@mui/material";
-import { Box } from "@mui/material";
 import { useEffect, useState } from "react";
 import {
   createTtsConversionDoc,
@@ -13,6 +14,7 @@ import {
 } from "../services/db/voices.service";
 import { textToSpeech } from "../helper";
 import AudioPlayer from "./AudioPlayer";
+import axios from "axios";
 
 type Props = {
   voice: VoiceDoc;
@@ -22,6 +24,11 @@ type Props = {
 const TtsArea = ({ voice, ttsInput }: Props) => {
   const [convertedAudioUrl, setConvertedAudioUrl] = useState<string>("");
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isLaunching, setIsLaunching] = useState(false);
+  const [tokenomics, setTokenomics] = useState<{
+    voice_owner: number;
+    launcher: number;
+  } | null>(null);
 
   const performTts = async (text: string) => {
     if (voice.audioUrl) {
@@ -34,10 +41,21 @@ const TtsArea = ({ voice, ttsInput }: Props) => {
         console.error(error);
         alert("Running out of credits, please try again later");
       } finally {
-        setIsGenerating(false);
+        // setIsGenerating(false);
       }
     }
   };
+
+  const fetchTokenomics = async () => {
+    const tokenomics = await axios.post(
+      `${import.meta.env.VITE_AGENT_SERVER_URL}/tokenomics`,
+      {
+        voice_name: ttsInput,
+      }
+    );
+    setTokenomics(tokenomics.data);
+  };
+
   useEffect(() => {
     if (ttsInput) {
       performTts(ttsInput);
@@ -55,6 +73,7 @@ const TtsArea = ({ voice, ttsInput }: Props) => {
     >
       <Typography variant="h6">Your Agent is ready to speak! 🔊</Typography>
       <Divider />
+      <AudioPlayer src={convertedAudioUrl} title="Agent Audio" />
       <Box my={4}>
         <Typography variant="h4">{ttsInput}</Typography>
       </Box>
@@ -62,14 +81,80 @@ const TtsArea = ({ voice, ttsInput }: Props) => {
         <IconButton>
           {convertedAudioUrl ? (
             <AudioPlayer src={convertedAudioUrl} title="Agent Audio" />
-          ) : (
+          ) : isGenerating ? (
             <CircularProgress />
+          ) : (
+            <Box />
           )}
         </IconButton>
       </Box>
-      <Typography align="center" variant="body1">
-        waiting for your input...
-      </Typography>
+      {!isGenerating && (
+        <Typography align="center" variant="body1">
+          waiting for your input...
+        </Typography>
+      )}
+      {!isLaunching ? (
+        <Button
+          variant="outlined"
+          color="primary"
+          onClick={async () => {
+            setIsLaunching(true);
+            await fetchTokenomics();
+          }}
+        >
+          Launch your Voice Agent with Coinbase Agentkit
+        </Button>
+      ) : tokenomics ? (
+        <Stack alignItems="center" spacing={2}>
+          <Typography variant="body1">Tokens Split from AVA:</Typography>
+          <Box
+            sx={{
+              width: 100,
+              height: 100,
+              borderRadius: "50%",
+              background: (theme) => `conic-gradient(
+                ${theme.palette.success.main} 0% ${
+                tokenomics?.voice_owner * 100
+              }%, 
+                ${theme.palette.primary.main} ${
+                tokenomics?.voice_owner * 100
+              }% 100%
+              )`,
+            }}
+          />
+          <Stack spacing={2} alignItems="center">
+            <Stack direction="row" spacing={0.5} alignItems="center">
+              <Box
+                sx={{
+                  width: 12,
+                  height: 12,
+                  bgcolor: "success.main",
+                }}
+              />
+              <Typography>
+                Voice Owner: {tokenomics.voice_owner * 100}%
+              </Typography>
+            </Stack>
+            <Stack direction="row" spacing={0.5} alignItems="center">
+              <Box
+                sx={{
+                  width: 12,
+                  height: 12,
+                  bgcolor: "primary.main",
+                }}
+              />
+              <Typography>Launcher: {tokenomics.launcher * 100}%</Typography>
+            </Stack>
+          </Stack>
+          <Button variant="outlined" color="primary">
+            Launch
+          </Button>
+        </Stack>
+      ) : (
+        <Typography align="center">
+          AVA is evaluating the tokenomics...
+        </Typography>
+      )}
     </Stack>
   );
 };
