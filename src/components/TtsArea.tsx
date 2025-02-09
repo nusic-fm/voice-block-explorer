@@ -6,10 +6,12 @@ import {
   Typography,
 } from "@mui/material";
 import { Box } from "@mui/material";
-import axios from "axios";
-import { useState } from "react";
-import PlayArrowIcon from "@mui/icons-material/PlayArrow";
-import { createTtsConversion, VoiceDoc } from "../services/db/voices.service";
+import { useEffect, useState } from "react";
+import {
+  createTtsConversionDoc,
+  VoiceDoc,
+} from "../services/db/voices.service";
+import { textToSpeech } from "../helper";
 
 type Props = {
   voice: VoiceDoc;
@@ -18,28 +20,28 @@ type Props = {
 
 const TtsArea = ({ voice, ttsInput }: Props) => {
   const [convertedAudioUrl, setConvertedAudioUrl] = useState<string>("");
-  const [isPlaying, setIsPlaying] = useState<boolean>(false);
+  const [isGenerating, setIsGenerating] = useState(false);
 
-  const performTts = async () => {
-    if (convertedAudioUrl) {
-      const audio = new Audio(convertedAudioUrl);
-      audio.play();
-      setIsPlaying(true);
-      return;
-    }
+  const performTts = async (text: string) => {
     if (voice.audioUrl) {
-      const response = await axios.post(
-        `${import.meta.env.VITE_AGENT_SERVER_URL}/llasa-voice-synthesizer`,
-        {
-          text: voice.name,
-          audio_url: voice.audioUrl,
-        }
-      );
-      const url = response.data.url;
-      setConvertedAudioUrl(url);
-      await createTtsConversion(voice, voice.name);
+      setIsGenerating(true);
+      try {
+        const url = await textToSpeech(text, voice.audioUrl);
+        setConvertedAudioUrl(url);
+        await createTtsConversionDoc(voice, text);
+      } catch (error) {
+        console.error(error);
+        alert("Running out of credits, please try again later");
+      } finally {
+        setIsGenerating(false);
+      }
     }
   };
+  useEffect(() => {
+    if (ttsInput) {
+      performTts(ttsInput);
+    }
+  }, [ttsInput]);
 
   return (
     <Stack
@@ -56,8 +58,12 @@ const TtsArea = ({ voice, ttsInput }: Props) => {
         <Typography variant="h4">{ttsInput}</Typography>
       </Box>
       <Box display="flex" justifyContent="center" alignItems="center">
-        <IconButton onClick={performTts}>
-          {convertedAudioUrl ? <PlayArrowIcon /> : <CircularProgress />}
+        <IconButton>
+          {convertedAudioUrl ? (
+            <audio src={convertedAudioUrl} controls />
+          ) : (
+            <CircularProgress />
+          )}
         </IconButton>
       </Box>
       <Typography align="center" variant="body1">

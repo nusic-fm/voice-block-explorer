@@ -1,3 +1,4 @@
+import axios from "axios";
 import { Voice } from "./services/db/voices.service";
 
 const extractYoutubeId = (url: string) => {
@@ -86,6 +87,18 @@ const getShortestDuration = (voices: Voice[]) => {
   );
 };
 
+const textToSpeech = async (text: string, audio_url: string) => {
+  const response = await axios.post(
+    `${import.meta.env.VITE_AGENT_SERVER_URL}/llasa-voice-synthesizer`,
+    {
+      text,
+      audio_url,
+    }
+  );
+  const url = response.data.url;
+  return url;
+};
+
 export {
   extractYoutubeId,
   getSpeakerAudioUrl,
@@ -93,4 +106,5 @@ export {
   getAverageDuration,
   getLongestDuration,
   getShortestDuration,
+  textToSpeech,
 };

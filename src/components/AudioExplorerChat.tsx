@@ -39,11 +39,9 @@ const AudioExplorerChat = ({
   conversations,
   setConversations,
   showTts,
-  ttsInput,
   setTtsInput,
 }: Props) => {
   const [currentPrompt, setCurrentPrompt] = useState<string>("");
-  const [voiceName, setVoiceName] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isProcessStarted, setIsProcessStarted] = useState<boolean>(false);
 
@@ -56,7 +54,7 @@ const AudioExplorerChat = ({
     ]);
     // setPrompts([...prompts, currentPrompt]);
     // await fetchAndSetAnswer(currentPrompt);
-    await fetchYoutubeResults();
+    await fetchSearchResults();
     setIsLoading(false);
   };
 
@@ -90,7 +88,7 @@ const AudioExplorerChat = ({
   //     ]);
   //   }
   // };
-  const fetchYoutubeResults = async () => {
+  const fetchSearchResults = async () => {
     setIsLoading(true);
     const searchText = currentPrompt;
     try {
@@ -119,6 +117,7 @@ const AudioExplorerChat = ({
         },
       ]);
     } finally {
+      setCurrentPrompt("");
       setIsLoading(false);
     }
   };
@@ -176,10 +175,13 @@ const AudioExplorerChat = ({
                     }}
                   >
                     <img
-                      src={"favicon.png"}
+                      src={"ava.png"}
                       alt="agent"
                       width={30}
                       height={30}
+                      style={{
+                        borderRadius: "50%",
+                      }}
                     />
                     <Typography variant="subtitle1">
                       {conversation.isHighlight && <span>✨</span>}{" "}
@@ -249,18 +251,28 @@ const AudioExplorerChat = ({
             }
             value={currentPrompt}
             onChange={(e) => setCurrentPrompt(e.target.value)}
-            disabled={isLoading || !!voiceName}
+            disabled={isLoading}
             onKeyDown={(e) => {
               if (e.key === "Enter") {
-                handleSend();
+                if (showTts) {
+                  setTtsInput(currentPrompt);
+                } else {
+                  handleSend();
+                }
               }
             }}
           />
           <LoadingButton
             loading={isLoading}
             variant="outlined"
-            onClick={handleSend}
-            disabled={isLoading || !!voiceName}
+            onClick={() => {
+              if (showTts) {
+                setTtsInput(currentPrompt);
+              } else {
+                handleSend();
+              }
+            }}
+            disabled={isLoading}
           >
             Send
           </LoadingButton>

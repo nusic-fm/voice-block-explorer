@@ -1,4 +1,9 @@
-import { addDoc, collection, getDocs } from "firebase/firestore";
+import {
+  addDoc,
+  collection,
+  getDocs,
+  serverTimestamp,
+} from "firebase/firestore";
 import { db } from "../firebase.service";
 
 const COLLECTION_NAME = "voices";
@@ -25,7 +30,10 @@ export type VoiceDoc = Voice & {
 
 export const createVoice = async (voice: Voice) => {
   const voiceRef = collection(db, COLLECTION_NAME);
-  const docRef = await addDoc(voiceRef, voice);
+  const docRef = await addDoc(voiceRef, {
+    ...voice,
+    createdAt: serverTimestamp(),
+  });
   return docRef.id;
 };
 
@@ -35,8 +43,14 @@ export const getVoices = async () => {
   return snapshot.docs.map((doc) => doc.data());
 };
 
-export const createTtsConversion = async (voice: VoiceDoc, ttsText: string) => {
+export const createTtsConversionDoc = async (
+  voice: VoiceDoc,
+  ttsText: string
+) => {
   const ttsRef = collection(db, COLLECTION_NAME, voice.id, "tts");
-  const docRef = await addDoc(ttsRef, { text: ttsText });
+  const docRef = await addDoc(ttsRef, {
+    text: ttsText,
+    createdAt: serverTimestamp(),
+  });
   return docRef.id;
 };

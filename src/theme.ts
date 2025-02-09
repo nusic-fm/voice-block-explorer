@@ -3,7 +3,7 @@ import WebFont from "webfontloader";
 
 WebFont.load({
   google: {
-    families: ["Space Grotesk"],
+    families: ["Orbitron"],
   },
 });
 declare module "@mui/material/styles/createPalette" {
@@ -41,7 +41,7 @@ const themeSettings = createTheme({
     allVariants: {
       color: "#00ffff",
     },
-    fontFamily: `Space Grotesk, sans-serif`,
+    fontFamily: `Orbitron, sans-serif`,
   },
 });
 const theme = responsiveFontSizes(themeSettings);

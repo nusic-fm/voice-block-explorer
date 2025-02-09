@@ -422,7 +422,7 @@ const KrakenEffect: React.FC<{ isLoading: boolean }> = ({ isLoading }) => {
           AVA
         </Box>
         <Box component="div" sx={styles.avaSubtitle}>
-          AI Voice Agent
+          AI Voice Agents
         </Box>
       </Box>
     </Box>

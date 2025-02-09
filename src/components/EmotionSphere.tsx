@@ -8,13 +8,14 @@ import {
   Divider,
   Stack,
   TextField,
-  Button,
   Modal,
 } from "@mui/material";
 import { Voice } from "../services/db/voices.service";
 import { useCollectionData } from "react-firebase-hooks/firestore";
 import { collection } from "firebase/firestore";
 import { db } from "../services/firebase.service";
+import { LoadingButton } from "@mui/lab";
+import { textToSpeech } from "../helper";
 
 // Styled components
 const VisualizationContainer = styled(Box)(({ theme }) => ({
@@ -203,6 +204,10 @@ const EmotionSphere: React.FC = () => {
   const [raycaster] = useState(new THREE.Raycaster());
   const [mouse] = useState(new THREE.Vector2());
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [convertedAudioUrl, setConvertedAudioUrl] = useState<string | null>(
+    null
+  );
 
   useEffect(() => {
     if (!voices || voices.length === 0) return;
@@ -538,6 +543,7 @@ const EmotionSphere: React.FC = () => {
 
   // Add dialog close handler
   const handleCloseDialog = () => {
+    if (isGenerating) return;
     setDialogOpen(false);
   };
 
@@ -586,6 +592,21 @@ const EmotionSphere: React.FC = () => {
     };
   }, [audioNodes, camera]);
 
+  const handleGenerate = async () => {
+    if (!selectedNode) return;
+    setIsGenerating(true);
+    const ttsText = ttsInput;
+    try {
+      const url = await textToSpeech(ttsText, selectedNode?.audioUrl);
+      setConvertedAudioUrl(url);
+    } catch (error) {
+      alert("Running out of credits, please try again later");
+      console.error(error);
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
   return (
     <Box sx={{ width: "100%", height: "100vh", position: "relative" }}>
       <VisualizationContainer ref={containerRef} />
@@ -616,7 +637,17 @@ const EmotionSphere: React.FC = () => {
             />
           </Box>
           <Box display="flex" justifyContent="center" alignItems="center">
-            <Button variant="contained">Generate</Button>
+            {convertedAudioUrl ? (
+              <audio src={convertedAudioUrl} controls />
+            ) : (
+              <LoadingButton
+                loading={isGenerating}
+                variant="contained"
+                onClick={handleGenerate}
+              >
+                Generate
+              </LoadingButton>
+            )}
           </Box>
         </Stack>
       </Modal>

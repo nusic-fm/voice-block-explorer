@@ -42,7 +42,7 @@ const App: React.FC = () => {
     null
   );
   const [showEmotionSphere, setShowEmotionSphere] = useState<boolean>(false);
-  const [showTts, setShowTts] = useState<boolean>(true);
+  const [showTts, setShowTts] = useState<boolean>(false);
   const [selectedVoice, setSelectedVoice] = useState<VoiceDoc | null>(null);
   const [ttsInput, setTtsInput] = useState<string>("");
   // {
@@ -61,6 +61,7 @@ const App: React.FC = () => {
   const [nftInfo, setNftInfo] = useState<{
     name: string;
     symbol: string;
+    emoji: string;
   } | null>(null);
 
   const fetchSpeakersUrl = async (
@@ -174,7 +175,7 @@ const App: React.FC = () => {
       twitterUsername: selectedVideo?.username,
       tweetId: selectedVideo?.id,
       tweetVideoUrl: selectedVideo?.videoUrl,
-      emoji: randomEmoji(),
+      emoji: nftInfo?.emoji || randomEmoji(),
       duration: Math.floor(Math.random() * 60) + 60,
     };
     const voiceId = await createVoice(_voice);
