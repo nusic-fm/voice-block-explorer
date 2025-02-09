@@ -8,15 +8,16 @@ interface VideoProps {
 }
 
 const VideoOption: React.FC<VideoProps> = ({ video, onVideoSelected }) => {
-  const [isHovered, setIsHovered] = React.useState(false);
+  const [readyToLoad, setReadyToLoad] = React.useState(false);
 
   return (
     <Stack
       width={280}
       height={260}
       borderRadius={1}
-      onMouseEnter={() => setIsHovered(true)}
+      // onMouseEnter={() => setIsHovered(true)}
       // onMouseLeave={() => setIsHovered(false)}
+      onClick={() => setReadyToLoad(true)}
       justifyContent={"space-between"}
       sx={{
         position: "relative",
@@ -28,7 +29,7 @@ const VideoOption: React.FC<VideoProps> = ({ video, onVideoSelected }) => {
       }}
     >
       <Box sx={{ height: 160 }} display={"flex"} justifyContent={"center"}>
-        {isHovered ? (
+        {readyToLoad ? (
           <video
             style={{
               width: 280,

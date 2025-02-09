@@ -56,13 +56,16 @@ const AnalyticsExplorer = (props: Props) => {
       >
         <Typography variant="h6">Duration Stats</Typography>
         <Typography variant="body1">
-          Average Duration: {voices && getAverageDuration(voices as Voice[])}
+          Average Duration:{" "}
+          {voices && getAverageDuration(voices as Voice[]).toFixed(2)}
         </Typography>
         <Typography variant="body1">
-          Longest Duration: {voices && getLongestDuration(voices as Voice[])}
+          Longest Duration:{" "}
+          {voices && getLongestDuration(voices as Voice[]).toFixed(2)}
         </Typography>
         <Typography variant="body1">
-          Shortest Duration: {voices && getShortestDuration(voices as Voice[])}
+          Shortest Duration:{" "}
+          {voices && getShortestDuration(voices as Voice[]).toFixed(2)}
         </Typography>
       </Stack>
     </Stack>

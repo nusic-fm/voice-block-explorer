@@ -68,7 +68,7 @@ const styles = {
     transition: "opacity 0.5s ease",
   },
   avaText: {
-    fontFamily: "'Inter', sans-serif",
+    fontFamily: "Orbitron, sans-serif",
     fontSize: "12rem",
     fontWeight: 800,
     color: "rgba(0, 255, 255, 0.15)",
@@ -85,7 +85,7 @@ const styles = {
     animation: "textPulse 16s ease-in-out infinite",
   },
   avaSubtitle: {
-    fontFamily: "'Inter', sans-serif",
+    fontFamily: "Orbitron, sans-serif",
     fontSize: "1.8rem",
     fontWeight: 400,
     color: "rgba(0, 255, 255, 0.2)",
