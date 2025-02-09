@@ -146,7 +146,11 @@ const TtsArea = ({ voice, ttsInput }: Props) => {
               <Typography>Launcher: {tokenomics.launcher * 100}%</Typography>
             </Stack>
           </Stack>
-          <Button variant="outlined" color="primary">
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={() => alert("coming soon")}
+          >
             Launch
           </Button>
         </Stack>
