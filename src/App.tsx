@@ -14,7 +14,7 @@ import {
 import VoiceSamples from "./components/VoiceSamples";
 import AnalyticsExplorer from "./components/AnalyticsExplorer";
 import { createVoice, Voice, VoiceDoc } from "./services/db/voices.service";
-import { getSpeakerAudioUrl } from "./helper";
+import { getSpeakerAudioUrl, randomEmoji } from "./helper";
 import UploadAudio from "./components/UploadAudio";
 import EmotionSphere from "./components/EmotionSphere";
 import TtsArea from "./components/TtsArea";
@@ -174,6 +174,8 @@ const App: React.FC = () => {
       twitterUsername: selectedVideo?.username,
       tweetId: selectedVideo?.id,
       tweetVideoUrl: selectedVideo?.videoUrl,
+      emoji: randomEmoji(),
+      duration: Math.floor(Math.random() * 60) + 60,
     };
     const voiceId = await createVoice(_voice);
     setConversations((prev) => [

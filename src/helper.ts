@@ -1,3 +1,5 @@
+import { Voice } from "./services/db/voices.service";
+
 const extractYoutubeId = (url: string) => {
   const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
   const match = url.match(regExp);
@@ -10,4 +12,85 @@ const getSpeakerAudioUrl = (jobId: string, speaker: string) => {
   }/tts-yt-audio%2f${jobId}%2f${speaker}?alt=media`;
 };
 
-export { extractYoutubeId, getSpeakerAudioUrl };
+const randomEmoji = () => {
+  const emojis = [
+    "🤖",
+    "🎯",
+    "🚀",
+    "✨",
+    "💫",
+    "🎮",
+    "🎪",
+    "🎭",
+    "🎨",
+    "🎼",
+    "🎧",
+    "🎤",
+    "🎹",
+    "🌟",
+    "💡",
+    "⚡️",
+    "🔥",
+    "🌈",
+    "🎪",
+    "🎭",
+    "🦾",
+    "🤝",
+    "👾",
+    "🎲",
+    "🎯",
+    "🎪",
+    "🎨",
+    "🎭",
+    "🎬",
+    "🎤",
+    "🔮",
+    "💎",
+    "🎪",
+    "🎭",
+    "🎨",
+    "🎼",
+    "🎧",
+    "🎤",
+    "🎹",
+    "🌟",
+    "🦄",
+    "🐉",
+    "🍀",
+    "🌿",
+    "🌴",
+    "🌳",
+  ];
+  return emojis[Math.floor(Math.random() * emojis.length)];
+};
+
+const getAverageDuration = (voices: Voice[]) => {
+  return (
+    voices.reduce((acc, voice) => acc + voice.duration, 0) /
+    (voices.length || 1)
+  );
+};
+
+const getLongestDuration = (voices: Voice[]) => {
+  return voices.reduce(
+    (acc, voice) => (acc > voice.duration ? acc : voice.duration),
+    0
+  );
+};
+
+const getShortestDuration = (voices: Voice[]) => {
+  if (!voices || voices.length === 0) return 0;
+  return voices.reduce(
+    (acc, voice) => (acc > voice.duration ? voice.duration : acc),
+    voices[0].duration
+  );
+};
+
+export {
+  extractYoutubeId,
+  getSpeakerAudioUrl,
+  randomEmoji,
+  getAverageDuration,
+  getLongestDuration,
+  getShortestDuration,
+};

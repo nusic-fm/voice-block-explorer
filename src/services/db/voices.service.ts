@@ -11,11 +11,12 @@ export type Voice = {
   jobId: string;
   isNFTDeployed: boolean;
   yVid?: string;
-  emoji?: string;
+  emoji: string;
   tweetTitle?: string;
   twitterUsername?: string;
   tweetVideoUrl?: string;
   tweetId?: string;
+  duration: number;
 };
 
 export type VoiceDoc = Voice & {

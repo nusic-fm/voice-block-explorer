@@ -3,6 +3,12 @@ import { collection } from "firebase/firestore";
 import { db } from "../services/firebase.service";
 import { useCollectionData } from "react-firebase-hooks/firestore";
 import { BarChart } from "@mui/x-charts/BarChart";
+import {
+  getAverageDuration,
+  getLongestDuration,
+  getShortestDuration,
+} from "../helper";
+import { Voice } from "../services/db/voices.service";
 
 type Props = {};
 
@@ -26,20 +32,12 @@ const AnalyticsExplorer = (props: Props) => {
           mx="auto"
         >
           <BarChart
-            series={[{ data: [120, 100, 98, 112, 106, 56, 99] }]}
+            series={[{ data: voices?.map((voice) => voice.duration) || [] }]}
             height={200}
             xAxis={[
               {
                 scaleType: "band",
-                data: [
-                  "Happy",
-                  "Sad",
-                  "Angry",
-                  "Surprise",
-                  "Fear",
-                  "Disgust",
-                  "Neutral",
-                ],
+                data: voices?.map((voice) => voice.emoji) || [],
               },
             ]}
           />
@@ -57,9 +55,15 @@ const AnalyticsExplorer = (props: Props) => {
         }}
       >
         <Typography variant="h6">Duration Stats</Typography>
-        <Typography variant="body1">Average Duration: 1:52</Typography>
-        <Typography variant="body1">Longest Duration: 2:01</Typography>
-        <Typography variant="body1">Shortest Duration: 1:27</Typography>
+        <Typography variant="body1">
+          Average Duration: {voices && getAverageDuration(voices as Voice[])}
+        </Typography>
+        <Typography variant="body1">
+          Longest Duration: {voices && getLongestDuration(voices as Voice[])}
+        </Typography>
+        <Typography variant="body1">
+          Shortest Duration: {voices && getShortestDuration(voices as Voice[])}
+        </Typography>
       </Stack>
     </Stack>
   );

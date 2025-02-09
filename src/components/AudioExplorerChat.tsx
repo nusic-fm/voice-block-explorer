@@ -135,13 +135,13 @@ const AudioExplorerChat = ({
     <Stack gap={2} height="100%" width={"100%"} py={2}>
       <Stack gap={2}>
         <Typography variant="h6" align="center">
-          Audio Explorer Chat
+          Voice Agent Launcher
         </Typography>
         <Divider sx={{ borderColor: "rgba(0, 255, 255, 0.2)" }} />
         <Stack gap={2}>
           <Typography>
-            Welcome! I can help you explore the audio samples. What would you
-            like to know?
+            Welcome! Let's launch your AI voice agent. What's the name of the
+            voice you wanna use?
           </Typography>
           {/* {!isProcessStarted ? (
           ) : ( */}
@@ -243,7 +243,9 @@ const AudioExplorerChat = ({
             fullWidth
             variant="outlined"
             placeholder={
-              showTts ? "What would you like to hear?" : "Find your character"
+              showTts
+                ? "What would you like to hear?"
+                : "What's your character's name?"
             }
             value={currentPrompt}
             onChange={(e) => setCurrentPrompt(e.target.value)}

@@ -4,17 +4,17 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import { styled } from "@mui/material/styles";
 import {
   Box,
-  useTheme,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Button,
   Typography,
-  IconButton,
+  Divider,
+  Stack,
+  TextField,
+  Button,
+  Modal,
 } from "@mui/material";
-import CloseIcon from "@mui/icons-material/Close";
 import { Voice } from "../services/db/voices.service";
+import { useCollectionData } from "react-firebase-hooks/firestore";
+import { collection } from "firebase/firestore";
+import { db } from "../services/firebase.service";
 
 // Styled components
 const VisualizationContainer = styled(Box)(({ theme }) => ({
@@ -68,138 +68,146 @@ const EmotionSphere: React.FC = () => {
   const [controls, setControls] = useState<OrbitControls | null>(null);
   const [audioNodes, setAudioNodes] = useState<LocalAudioNode[]>([]);
   const [selectedNode, setSelectedNode] = useState<Voice | null>(null);
-  const [audioFiles, setAudioFiles] = useState<Voice[]>([
-    {
-      emoji: "😀",
-      name: "Happy",
-      audioUrl: "https://youtu.be/dQw4w9WgXcQ",
-      audioPath: "https://youtu.be/dQw4w9WgXcQ",
-      jobId: "123",
-      isNFTDeployed: false,
-      symbol: "ELM",
-    },
-    {
-      emoji: "😤",
-      name: "Happy",
-      audioUrl: "https://youtu.be/dQw4w9WgXcQ",
-      audioPath: "https://youtu.be/dQw4w9WgXcQ",
-      jobId: "123",
-      isNFTDeployed: false,
-      symbol: "ELM",
-    },
-    {
-      emoji: "🤮",
-      name: "Happy",
-      audioUrl: "https://youtu.be/dQw4w9WgXcQ",
-      audioPath: "https://youtu.be/dQw4w9WgXcQ",
-      jobId: "123",
-      isNFTDeployed: false,
-      symbol: "ELM",
-    },
-    {
-      emoji: "🤯",
-      name: "Happy",
-      audioUrl: "https://youtu.be/dQw4w9WgXcQ",
-      audioPath: "https://youtu.be/dQw4w9WgXcQ",
-      jobId: "123",
-      isNFTDeployed: false,
-      symbol: "ELM",
-    },
-    {
-      emoji: "😎",
-      name: "Happy",
-      audioUrl: "https://youtu.be/dQw4w9WgXcQ",
-      audioPath: "https://youtu.be/dQw4w9WgXcQ",
-      jobId: "123",
-      isNFTDeployed: false,
-      symbol: "ELM",
-    },
-    {
-      emoji: "😍",
-      name: "Happy",
-      audioUrl: "https://youtu.be/dQw4w9WgXcQ",
-      audioPath: "https://youtu.be/dQw4w9WgXcQ",
-      jobId: "123",
-      isNFTDeployed: false,
-      symbol: "ELM",
-    },
-    {
-      emoji: "🙄",
-      name: "Happy",
-      audioUrl: "https://youtu.be/dQw4w9WgXcQ",
-      audioPath: "https://youtu.be/dQw4w9WgXcQ",
-      jobId: "123",
-      isNFTDeployed: false,
-      symbol: "ELM",
-    },
-    {
-      emoji: "😱",
-      name: "Happy",
-      audioUrl: "https://youtu.be/dQw4w9WgXcQ",
-      audioPath: "https://youtu.be/dQw4w9WgXcQ",
-      jobId: "123",
-      isNFTDeployed: false,
-      symbol: "ELM",
-    },
-    {
-      emoji: "🥹",
-      name: "Happy",
-      audioUrl: "https://youtu.be/dQw4w9WgXcQ",
-      audioPath: "https://youtu.be/dQw4w9WgXcQ",
-      jobId: "123",
-      isNFTDeployed: false,
-      symbol: "ELM",
-    },
-    {
-      emoji: "😢",
-      name: "Happy",
-      audioUrl: "https://youtu.be/dQw4w9WgXcQ",
-      audioPath: "https://youtu.be/dQw4w9WgXcQ",
-      jobId: "123",
-      isNFTDeployed: false,
-      symbol: "ELM",
-    },
-    {
-      emoji: "🤔",
-      name: "Happy",
-      audioUrl: "https://youtu.be/dQw4w9WgXcQ",
-      audioPath: "https://youtu.be/dQw4w9WgXcQ",
-      jobId: "123",
-      isNFTDeployed: false,
-      symbol: "ELM",
-    },
-    {
-      emoji: "🤭",
-      name: "Happy",
-      audioUrl: "https://youtu.be/dQw4w9WgXcQ",
-      audioPath: "https://youtu.be/dQw4w9WgXcQ",
-      jobId: "123",
-      isNFTDeployed: false,
-      symbol: "ELM",
-    },
-    {
-      emoji: "😵‍💫",
-      name: "Happy",
-      audioUrl: "https://youtu.be/dQw4w9WgXcQ",
-      audioPath: "https://youtu.be/dQw4w9WgXcQ",
-      jobId: "123",
-      isNFTDeployed: false,
-      symbol: "ELM",
-    },
-    {
-      emoji: "🫣",
-      name: "Happy",
-      audioUrl: "https://youtu.be/dQw4w9WgXcQ",
-      audioPath: "https://youtu.be/dQw4w9WgXcQ",
-      jobId: "123",
-      isNFTDeployed: false,
-      symbol: "ELM",
-    },
-  ]);
+  const [ttsInput, setTtsInput] = useState<string>("");
+  // const [audioFiles, setAudioFiles] = useState<Voice[]>([
+  //   {
+  //     emoji: "😀",
+  //     name: "Happy",
+  //     audioUrl: "https://youtu.be/dQw4w9WgXcQ",
+  //     audioPath: "https://youtu.be/dQw4w9WgXcQ",
+  //     jobId: "123",
+  //     isNFTDeployed: false,
+  //     symbol: "ELM",
+  //   },
+  //   {
+  //     emoji: "😤",
+  //     name: "Happy",
+  //     audioUrl: "https://youtu.be/dQw4w9WgXcQ",
+  //     audioPath: "https://youtu.be/dQw4w9WgXcQ",
+  //     jobId: "123",
+  //     isNFTDeployed: false,
+  //     symbol: "ELM",
+  //   },
+  //   {
+  //     emoji: "🤮",
+  //     name: "Happy",
+  //     audioUrl: "https://youtu.be/dQw4w9WgXcQ",
+  //     audioPath: "https://youtu.be/dQw4w9WgXcQ",
+  //     jobId: "123",
+  //     isNFTDeployed: false,
+  //     symbol: "ELM",
+  //   },
+  //   {
+  //     emoji: "🤯",
+  //     name: "Happy",
+  //     audioUrl: "https://youtu.be/dQw4w9WgXcQ",
+  //     audioPath: "https://youtu.be/dQw4w9WgXcQ",
+  //     jobId: "123",
+  //     isNFTDeployed: false,
+  //     symbol: "ELM",
+  //   },
+  //   {
+  //     emoji: "😎",
+  //     name: "Happy",
+  //     audioUrl: "https://youtu.be/dQw4w9WgXcQ",
+  //     audioPath: "https://youtu.be/dQw4w9WgXcQ",
+  //     jobId: "123",
+  //     isNFTDeployed: false,
+  //     symbol: "ELM",
+  //   },
+  //   {
+  //     emoji: "😍",
+  //     name: "Happy",
+  //     audioUrl: "https://youtu.be/dQw4w9WgXcQ",
+  //     audioPath: "https://youtu.be/dQw4w9WgXcQ",
+  //     jobId: "123",
+  //     isNFTDeployed: false,
+  //     symbol: "ELM",
+  //   },
+  //   {
+  //     emoji: "🙄",
+  //     name: "Happy",
+  //     audioUrl: "https://youtu.be/dQw4w9WgXcQ",
+  //     audioPath: "https://youtu.be/dQw4w9WgXcQ",
+  //     jobId: "123",
+  //     isNFTDeployed: false,
+  //     symbol: "ELM",
+  //   },
+  //   {
+  //     emoji: "😱",
+  //     name: "Happy",
+  //     audioUrl: "https://youtu.be/dQw4w9WgXcQ",
+  //     audioPath: "https://youtu.be/dQw4w9WgXcQ",
+  //     jobId: "123",
+  //     isNFTDeployed: false,
+  //     symbol: "ELM",
+  //   },
+  //   {
+  //     emoji: "🥹",
+  //     name: "Happy",
+  //     audioUrl: "https://youtu.be/dQw4w9WgXcQ",
+  //     audioPath: "https://youtu.be/dQw4w9WgXcQ",
+  //     jobId: "123",
+  //     isNFTDeployed: false,
+  //     symbol: "ELM",
+  //   },
+  //   {
+  //     emoji: "😢",
+  //     name: "Happy",
+  //     audioUrl: "https://youtu.be/dQw4w9WgXcQ",
+  //     audioPath: "https://youtu.be/dQw4w9WgXcQ",
+  //     jobId: "123",
+  //     isNFTDeployed: false,
+  //     symbol: "ELM",
+  //   },
+  //   {
+  //     emoji: "🤔",
+  //     name: "Happy",
+  //     audioUrl: "https://youtu.be/dQw4w9WgXcQ",
+  //     audioPath: "https://youtu.be/dQw4w9WgXcQ",
+  //     jobId: "123",
+  //     isNFTDeployed: false,
+  //     symbol: "ELM",
+  //   },
+  //   {
+  //     emoji: "🤭",
+  //     name: "Happy",
+  //     audioUrl: "https://youtu.be/dQw4w9WgXcQ",
+  //     audioPath: "https://youtu.be/dQw4w9WgXcQ",
+  //     jobId: "123",
+  //     isNFTDeployed: false,
+  //     symbol: "ELM",
+  //   },
+  //   {
+  //     emoji: "😵‍💫",
+  //     name: "Happy",
+  //     audioUrl: "https://youtu.be/dQw4w9WgXcQ",
+  //     audioPath: "https://youtu.be/dQw4w9WgXcQ",
+  //     jobId: "123",
+  //     isNFTDeployed: false,
+  //     symbol: "ELM",
+  //   },
+  //   {
+  //     emoji: "🫣",
+  //     name: "Happy",
+  //     audioUrl: "https://youtu.be/dQw4w9WgXcQ",
+  //     audioPath: "https://youtu.be/dQw4w9WgXcQ",
+  //     jobId: "123",
+  //     isNFTDeployed: false,
+  //     symbol: "ELM",
+  //   },
+  // ]);
+  const [voices] = useCollectionData(collection(db, "voices"));
+  const [audioFiles, setAudioFiles] = useState<Voice[]>([]);
   const animationFrameRef = useRef<number>();
   const [raycaster] = useState(new THREE.Raycaster());
   const [mouse] = useState(new THREE.Vector2());
   const [dialogOpen, setDialogOpen] = useState(false);
+
+  useEffect(() => {
+    if (!voices || voices.length === 0) return;
+    setAudioFiles(voices as Voice[]);
+  }, [voices]);
 
   // Initialize Three.js scene
   useEffect(() => {
@@ -249,6 +257,7 @@ const EmotionSphere: React.FC = () => {
 
   // Create audio nodes
   useEffect(() => {
+    if (!audioFiles || audioFiles.length === 0) return;
     const createAudioNode = (
       position: THREE.Vector3,
       data: Voice,
@@ -346,7 +355,7 @@ const EmotionSphere: React.FC = () => {
         node.label.remove();
       });
     };
-  }, [scene]);
+  }, [scene, audioFiles]);
 
   // Animation loop
   useEffect(() => {
@@ -581,57 +590,50 @@ const EmotionSphere: React.FC = () => {
     <Box sx={{ width: "100%", height: "100vh", position: "relative" }}>
       <VisualizationContainer ref={containerRef} />
 
-      <Dialog
+      <Modal
         open={dialogOpen}
         onClose={handleCloseDialog}
-        maxWidth="sm"
-        fullWidth
+        aria-labelledby="modal-modal-title"
+        aria-describedby="modal-modal-description"
       >
-        <DialogTitle>
-          <Box
-            display="flex"
-            alignItems="center"
-            justifyContent="space-between"
-          >
-            <Typography variant="h6" component="div">
-              {selectedNode?.symbol} {selectedNode?.name}
-            </Typography>
-            <IconButton
-              aria-label="close"
-              onClick={handleCloseDialog}
-              sx={{
-                color: (theme) => theme.palette.grey[500],
-              }}
-            >
-              <CloseIcon />
-            </IconButton>
+        <Stack
+          sx={{
+            ...style,
+            backgroundColor: "rgba(0, 255, 255, 0.2)",
+            borderRadius: 4,
+          }}
+          gap={2}
+        >
+          <Typography variant="h6">{selectedNode?.name}</Typography>
+          <Divider />
+          <Box my={4}>
+            <TextField
+              fullWidth
+              label="What would you like to hear?"
+              rows={4}
+              value={ttsInput}
+              onChange={(e) => setTtsInput(e.target.value)}
+            />
           </Box>
-        </DialogTitle>
-        <DialogContent dividers>
-          <Box sx={{ mb: 2 }}>
-            <Typography variant="subtitle1" gutterBottom>
-              Duration: {selectedNode?.audioUrl}
-            </Typography>
+          <Box display="flex" justifyContent="center" alignItems="center">
+            <Button variant="contained">Generate</Button>
           </Box>
-        </DialogContent>
-        <DialogActions>
-          <Button
-            onClick={() => {
-              if (selectedNode?.audioUrl) {
-                window.open(selectedNode.audioUrl, "_blank");
-              }
-            }}
-            color="primary"
-          >
-            Open in YouTube
-          </Button>
-          <Button onClick={handleCloseDialog} color="primary">
-            Close
-          </Button>
-        </DialogActions>
-      </Dialog>
+        </Stack>
+      </Modal>
     </Box>
   );
 };
 
 export default EmotionSphere;
+
+const style = {
+  position: "absolute",
+  top: "50%",
+  left: "50%",
+  transform: "translate(-50%, -50%)",
+  width: 400,
+  bgcolor: "background.paper",
+  border: "2px solid #000",
+  boxShadow: 24,
+  p: 4,
+};
