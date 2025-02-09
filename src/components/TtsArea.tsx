@@ -73,14 +73,14 @@ const TtsArea = ({ voice, ttsInput }: Props) => {
     >
       <Typography variant="h6">Your Agent is ready to speak! 🔊</Typography>
       <Divider />
-      <AudioPlayer src={convertedAudioUrl} title="Agent Audio" />
+      <AudioPlayer src={voice.audioUrl} title="Agent Audio" />
       <Box my={4}>
         <Typography variant="h4">{ttsInput}</Typography>
       </Box>
       <Box display="flex" justifyContent="center" alignItems="center">
         <IconButton>
           {convertedAudioUrl ? (
-            <AudioPlayer src={convertedAudioUrl} title="Agent Audio" />
+            <AudioPlayer src={convertedAudioUrl} title="Generated Audio" />
           ) : isGenerating ? (
             <CircularProgress />
           ) : (
