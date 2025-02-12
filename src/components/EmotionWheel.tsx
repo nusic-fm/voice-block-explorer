@@ -1,5 +1,5 @@
 import React, { useState, useRef } from "react";
-import { Box, IconButton, Typography } from "@mui/material";
+import { Box, Button, IconButton, Stack, Typography } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import MicIcon from "@mui/icons-material/Mic";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
@@ -164,15 +164,15 @@ const EmotionBox = styled(Box, {
 const EmotionLabel = styled(Typography, {
   shouldForwardProp: (prop) => prop !== "isVisible",
 })<{ isVisible: boolean }>(({ theme, isVisible }) => ({
-  position: "absolute",
-  top: "50%",
-  left: "50%",
-  transform: "translate(-50%, -50%) translateY(240px)",
+  // position: "absolute",
+  // top: "50%",
+  // left: "50%",
+  // transform: "translate(-50%, -50%) translateY(240px)",
   color: theme.palette.primary.main,
   fontSize: "1.5rem",
   fontWeight: "bold",
   textTransform: "capitalize",
-  opacity: isVisible ? 1 : 0,
+  // visibility: isVisible ? "visible" : "hidden",
   transition: theme.transitions.create(["opacity", "transform"], {
     duration: theme.transitions.duration.shorter,
     easing: theme.transitions.easing.easeInOut,
@@ -181,20 +181,20 @@ const EmotionLabel = styled(Typography, {
 }));
 
 const ExampleText = styled(Typography)(({ theme }) => ({
-  position: "absolute",
-  top: "50%",
-  left: "50%",
-  transform: "translate(-50%, -50%) translateY(100px)",
+  // position: "absolute",
+  // top: "50%",
+  // left: "50%",
+  // transform: "translate(-50%, -50%) translateY(100px)",
   color: theme.palette.text.primary,
   fontSize: "1.4rem",
   width: "320px",
   textAlign: "center",
   opacity: 1,
-  animation: "fadeInExample 0.5s ease-in-out forwards",
-  "@keyframes fadeInExample": {
-    from: { opacity: 0, transform: "translate(-50%, -50%) translateY(180px)" },
-    to: { opacity: 1, transform: "translate(-50%, -50%) translateY(160px)" },
-  },
+  // animation: "fadeInExample 0.5s ease-in-out forwards",
+  // "@keyframes fadeInExample": {
+  //   from: { opacity: 0, transform: "translate(-50%, -50%) translateY(180px)" },
+  //   to: { opacity: 1, transform: "translate(-50%, -50%) translateY(160px)" },
+  // },
 }));
 
 const Header = styled(Typography, {
@@ -251,6 +251,7 @@ const ChooseOptions: React.FC = () => {
   const audioChunksRef = useRef<Blob[]>([]);
   const [isPlaying, setIsPlaying] = useState(false);
   const [freezeSelectionChange, setFreezeSelectionChange] = useState(false);
+  const hasAudio = emotions.filter((e) => e.audioUrl).length > 0;
 
   const handleMicClick = async () => {
     if (!selectedEmotion) return;
@@ -557,13 +558,124 @@ const ChooseOptions: React.FC = () => {
             </EmotionBox>
           ))}
       </Container>
-      {!isRecording && (
-        <EmotionLabel isVisible={!!selectedEmotion}>
-          {selectedEmotion}
-        </EmotionLabel>
-      )}
+      <EmotionLabel isVisible={!!selectedEmotion}>
+        {selectedEmotion || "-"}
+      </EmotionLabel>
       {isRecording && selectedExample && (
         <ExampleText>{selectedExample}</ExampleText>
+      )}
+      {hasAudio && (
+        <Stack
+          spacing={2}
+          sx={{
+            mt: 2,
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: 1,
+              backgroundColor: "rgba(0, 255, 255, 0.1)",
+              padding: "8px 16px",
+              borderRadius: "16px",
+              border: "1px solid rgba(0, 255, 255, 0.2)",
+            }}
+          >
+            <Typography
+              sx={{
+                fontSize: "2rem",
+                fontWeight: "bold",
+                color: "#00ffff",
+                textShadow: "0 0 10px rgba(0, 255, 255, 0.3)",
+                fontFamily: "monospace",
+              }}
+            >
+              {Math.round(
+                (emotions.filter((e) => e.audioUrl).length / emotions.length) *
+                  100
+              )}
+              %
+            </Typography>
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
+              <Typography
+                variant="caption"
+                sx={{
+                  color: "text.secondary",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.1em",
+                  fontSize: "0.7rem",
+                }}
+              >
+                Completion
+              </Typography>
+              <Box
+                sx={{
+                  width: 100,
+                  height: 4,
+                  backgroundColor: "rgba(0, 255, 255, 0.1)",
+                  borderRadius: 2,
+                  overflow: "hidden",
+                }}
+              >
+                <Box
+                  sx={{
+                    width: `${
+                      (emotions.filter((e) => e.audioUrl).length /
+                        emotions.length) *
+                      100
+                    }%`,
+                    height: "100%",
+                    backgroundColor: "#00ffff",
+                    transition: "width 0.3s ease-in-out",
+                    boxShadow: "0 0 10px rgba(0, 255, 255, 0.5)",
+                    animation: "pulse 2s infinite",
+                  }}
+                />
+              </Box>
+              <Typography
+                variant="caption"
+                sx={{
+                  color: "text.secondary",
+                  fontSize: "0.7rem",
+                }}
+              >
+                {`${emotions.filter((e) => e.audioUrl).length}/${
+                  emotions.length
+                } Emotions`}
+              </Typography>
+            </Box>
+          </Box>
+
+          <Stack
+            direction="row"
+            spacing={2}
+            sx={{
+              width: "100%",
+              maxWidth: 300,
+              justifyContent: "center",
+            }}
+          >
+            <Button
+              variant="contained"
+              sx={{
+                backgroundColor: "rgba(0, 255, 255, 0.5)",
+                color: "white",
+                "&:hover": {
+                  backgroundColor: "rgba(0, 255, 255, 0.8)",
+                },
+                "&.Mui-disabled": {
+                  backgroundColor: "rgba(255, 255, 255, 0.1)",
+                  color: "rgba(255, 255, 255, 0.3)",
+                },
+              }}
+            >
+              Skip & Publish
+            </Button>
+          </Stack>
+        </Stack>
       )}
     </Box>
   );

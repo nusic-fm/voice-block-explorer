@@ -1,12 +1,10 @@
-import { Box, Button, Stack, Typography } from "@mui/material";
+import { Box } from "@mui/material";
 import KrakenEffect from "./components/KrakenEffect";
-import { useEffect, useState } from "react";
-import axios from "axios";
+import { useState } from "react";
 import EmotionSphere from "./components/EmotionSphere";
-import TtsArea from "./components/TtsArea";
 import "./app.css";
 import { UserVoiceSample } from "./services/db/userVoice.service";
-import ChooseOptions from "./components/ChooseOptions";
+import EmotionWheel from "./components/EmotionWheel";
 
 export type TwitterResult = {
   id: string;
@@ -131,7 +129,7 @@ const App: React.FC = () => {
                   Go to Explorer
                 </Button>
               </Box> */}
-              <ChooseOptions />
+              <EmotionWheel />
               {/* {currentState === "kraken" && <FlowSelection />} */}
               {/* {currentState === "tts" && selectedVoice ? (
                 <Box>
