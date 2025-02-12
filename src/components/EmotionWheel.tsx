@@ -3,6 +3,7 @@ import { Box, Button, IconButton, Stack, Typography } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import MicIcon from "@mui/icons-material/Mic";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
+import theme from "../theme";
 
 // interface Position {
 //   x: number;
@@ -17,7 +18,25 @@ const getAngles = (items: any[]) => {
   }));
 };
 
+type Emotion = {
+  emoji: string;
+  name: string;
+  examples: string[];
+  audioUrl: string | null;
+  angle: number;
+};
+
 const emotionsData = getAngles([
+  {
+    emoji: "😐",
+    name: "neutral",
+    examples: [
+      "I don't really feel strongly about this one way or the other.",
+      "It's just another regular day, nothing too exciting or upsetting.",
+      "I'm just going with the flow, not much to react to right now.",
+    ],
+    audioUrl: null,
+  },
   {
     emoji: "😊",
     name: "happy",
@@ -25,6 +44,16 @@ const emotionsData = getAngles([
       "This is the best day ever! I can't stop smiling and laughing!",
       "I feel so grateful for everything today. Life is truly beautiful!",
       "Wow, I finally did it! I knew I could achieve my goal!",
+    ],
+    audioUrl: null,
+  },
+  {
+    emoji: "🤝",
+    name: "trust",
+    examples: [
+      "I know I can count on you. You've always been there for me.",
+      "This feels right. I have complete confidence in how things will turn out.",
+      "I feel safe and supported. There's no doubt in my mind that we're in this together.",
     ],
     audioUrl: null,
   },
@@ -69,6 +98,26 @@ const emotionsData = getAngles([
     audioUrl: null,
   },
   {
+    emoji: "🤢",
+    name: "disgust",
+    examples: [
+      "Ugh, that's absolutely revolting! I can't even look at it.",
+      "I feel so uncomfortable just thinking about this. It's making my skin crawl.",
+      "This is just wrong on so many levels. I want nothing to do with it.",
+    ],
+    audioUrl: null,
+  },
+  {
+    emoji: "⏳",
+    name: "anticipation",
+    examples: [
+      "I can feel something big coming! The suspense is killing me!",
+      "I'm counting down the days. I know it's going to be worth the wait!",
+      "I have a feeling that something amazing is just around the corner.",
+    ],
+    audioUrl: null,
+  },
+  {
     emoji: "🤩",
     name: "excited",
     examples: [
@@ -101,46 +150,58 @@ const Container = styled(Box, {
 
 const SelectionArea = styled(Box, {
   shouldForwardProp: (prop) =>
-    !["angle", "selectedIndex"].includes(prop as string),
-})<{ angle: number; selectedIndex: number }>(({ theme, selectedIndex }) => ({
-  position: "absolute",
-  width: "100%",
-  height: "100%",
-  borderRadius: "50%",
-  "&::before": {
-    content: '""',
-    position: "absolute",
-    top: 0,
-    left: 0,
-    width: "100%",
-    height: "100%",
-    background: `conic-gradient(
-      from ${270 + (selectedIndex + 1) * 60}deg,
-      ${theme.palette.primary.main}20 0deg,
-      ${theme.palette.primary.main}20 60deg,
-      transparent 60deg,
-      transparent 360deg
-    )`,
-    borderRadius: "50%",
-  },
-  "&::after": {
-    content: '""',
-    position: "absolute",
-    top: 0,
-    left: 0,
-    width: "100%",
-    height: "100%",
-    background: `
-      linear-gradient(0deg, transparent 49.5%, ${theme.palette.primary.main}20 49.5%, ${theme.palette.primary.main}20 50.5%, transparent 50.5%),
-      linear-gradient(60deg, transparent 49.5%, ${theme.palette.primary.main}20 49.5%, ${theme.palette.primary.main}20 50.5%, transparent 50.5%),
-      linear-gradient(120deg, transparent 49.5%, ${theme.palette.primary.main}20 49.5%, ${theme.palette.primary.main}20 50.5%, transparent 50.5%),
-      linear-gradient(180deg, transparent 49.5%, ${theme.palette.primary.main}20 49.5%, ${theme.palette.primary.main}20 50.5%, transparent 50.5%),
-      linear-gradient(240deg, transparent 49.5%, ${theme.palette.primary.main}20 49.5%, ${theme.palette.primary.main}20 50.5%, transparent 50.5%),
-      linear-gradient(300deg, transparent 49.5%, ${theme.palette.primary.main}20 49.5%, ${theme.palette.primary.main}20 50.5%, transparent 50.5%)
-    `,
-    borderRadius: "50%",
-  },
-}));
+    !["angle", "selectedIndex", "containsAudio"].includes(prop as string),
+})<{ angle: number; selectedIndex: number; containsAudio: boolean }>(
+  ({ theme, selectedIndex, containsAudio }) => {
+    // TODO
+    // Calculate angle per slice based on emotions length
+    const sliceAngle = 360 / emotionsData.length;
+
+    // Generate the conic gradient for the selected slice
+    const conicGradient = `conic-gradient(
+    from ${270 + (selectedIndex + 2) * sliceAngle}deg,
+    ${theme.palette.primary.main}20 0deg,
+    ${theme.palette.primary.main}20 ${sliceAngle}deg,
+    transparent ${sliceAngle}deg,
+    transparent 360deg
+  )`;
+
+    // Generate the dividing lines gradients
+    const dividerLines = Array.from({ length: emotionsData.length })
+      .map((_, index) => {
+        const angle = (360 / emotionsData.length) * index;
+        return `linear-gradient(${angle}deg, transparent 49.5%, ${theme.palette.primary.main}20 49.5%, ${theme.palette.primary.main}20 50.5%, transparent 50.5%)`;
+      })
+      .join(",");
+
+    return {
+      position: "absolute",
+      width: "100%",
+      height: "100%",
+      borderRadius: "50%",
+      "&::before": {
+        content: '""',
+        position: "absolute",
+        top: 0,
+        left: 0,
+        width: "100%",
+        height: "100%",
+        background: conicGradient,
+        borderRadius: "50%",
+      },
+      "&::after": {
+        content: '""',
+        position: "absolute",
+        top: 0,
+        left: 0,
+        width: "100%",
+        height: "100%",
+        background: dividerLines,
+        borderRadius: "50%",
+      },
+    };
+  }
+);
 
 const InnerCircle = styled(Box)(({ theme }) => ({
   position: "absolute",
@@ -170,7 +231,7 @@ const EmotionBox = styled(Box, {
     duration: theme.transitions.duration.shorter,
   }),
   transform: `rotate(${angle}deg) translate(100px) rotate(-${angle}deg) ${
-    isSelected ? "scale(1.4)" : "scale(1)"
+    isSelected ? "scale(1.2)" : "scale(1)"
   }`,
   backgroundColor: isSelected ? theme.palette.action.selected : "transparent",
   zIndex: 1,
@@ -188,7 +249,7 @@ const EmotionLabel = styled(Typography, {
   fontSize: "1.5rem",
   fontWeight: "bold",
   textTransform: "capitalize",
-  // visibility: isVisible ? "visible" : "hidden",
+  visibility: isVisible ? "visible" : "hidden",
   transition: theme.transitions.create(["opacity", "transform"], {
     duration: theme.transitions.duration.shorter,
     easing: theme.transitions.easing.easeInOut,
@@ -257,8 +318,10 @@ const SubHeader = styled(Typography)(({ theme }) => ({
 }));
 
 const ChooseOptions: React.FC = () => {
-  const [emotions, setEmotions] = useState(emotionsData);
-  const [selectedEmotion, setSelectedEmotion] = useState<string | null>(null);
+  const [emotions, setEmotions] = useState<Emotion[]>(emotionsData);
+  const [selectedEmotion, setSelectedEmotion] = useState<string | null>(
+    "neutral"
+  );
   const [selectionAngle, setSelectionAngle] = useState(0);
   const [selectedExample, setSelectedExample] = useState<string>("");
   const containerRef = useRef<HTMLDivElement>(null);
@@ -268,8 +331,20 @@ const ChooseOptions: React.FC = () => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [freezeSelectionChange, setFreezeSelectionChange] = useState(false);
   const hasAudio = emotions.filter((e) => e.audioUrl).length > 0;
+  const [isTutorialMode, setIsTutorialMode] = useState(true);
+  const [showTutorialTooltip, setShowTutorialTooltip] = useState(false);
+  const [tutorialStep, setTutorialStep] = useState(0);
+
+  const displayedEmotions = isTutorialMode
+    ? emotions.filter((e) => e.name === "neutral")
+    : emotions;
 
   const handleMicClick = async () => {
+    if (isTutorialMode && tutorialStep === 0) {
+      setSelectedEmotion("neutral");
+      setShowTutorialTooltip(true);
+      setTutorialStep(1);
+    }
     if (!selectedEmotion) return;
 
     const emotion = emotions.find((e) => e.name === selectedEmotion);
@@ -331,6 +406,10 @@ const ChooseOptions: React.FC = () => {
   };
 
   const onStopRecording = () => {
+    if (isTutorialMode) {
+      setIsTutorialMode(false);
+      setShowTutorialTooltip(false);
+    }
     if (
       isRecording &&
       mediaRecorderRef.current &&
@@ -345,7 +424,7 @@ const ChooseOptions: React.FC = () => {
   };
 
   const handleMouseMove = (e: React.MouseEvent) => {
-    if (isRecording || freezeSelectionChange) return;
+    if (isRecording || freezeSelectionChange || isTutorialMode) return;
     if (containerRef.current) {
       const rect = containerRef.current.getBoundingClientRect();
       const center = {
@@ -408,14 +487,9 @@ const ChooseOptions: React.FC = () => {
       }}
     >
       <Header isRecording={isRecording}>
-        {isRecording ? (
-          <>
-            Recording
-            <span className="recording-dot" />
-          </>
-        ) : (
-          "Choose an emotion to Record your voice"
-        )}
+        {isTutorialMode
+          ? "Let's start with a simple emotion"
+          : "Choose an emotion to Record your voice"}
       </Header>
       <SubHeader>
         {isRecording ? "Say the words into the mic" : "Click the mic to record"}
@@ -434,6 +508,9 @@ const ChooseOptions: React.FC = () => {
             cursor: "pointer",
           }}
           onClick={handleMicClick}
+          containsAudio={
+            !!emotions.find((e) => e.name === selectedEmotion)?.audioUrl
+          }
         />
         <InnerCircle
           onMouseMove={(e) => e.stopPropagation()}
@@ -457,6 +534,19 @@ const ChooseOptions: React.FC = () => {
               },
               "100%": {
                 boxShadow: "0 0 0 0 rgba(0, 255, 255, 0)",
+              },
+            },
+            "& .MuiIconButton-root": {
+              animation:
+                isTutorialMode && tutorialStep === 0
+                  ? "blinkAttention 1.5s infinite"
+                  : "none",
+            },
+            "@keyframes blinkAttention": {
+              "0%, 100%": { transform: "scale(1)" },
+              "50%": {
+                transform: "scale(1.2)",
+                background: "rgba(0, 255, 255, 0.4)",
               },
             },
           }}
@@ -569,7 +659,7 @@ const ChooseOptions: React.FC = () => {
         </InnerCircle>
 
         {!isRecording &&
-          emotions.map((emotion) => (
+          displayedEmotions.map((emotion) => (
             <EmotionBox
               key={emotion.name}
               angle={emotion.angle}
@@ -580,11 +670,57 @@ const ChooseOptions: React.FC = () => {
             </EmotionBox>
           ))}
       </Container>
-      <EmotionLabel isVisible={!!selectedEmotion}>
+      <EmotionLabel
+        isVisible={!!selectedEmotion && (!isTutorialMode || !isRecording)}
+      >
         {selectedEmotion || "-"}
       </EmotionLabel>
       {isRecording && selectedExample && (
-        <ExampleText>{selectedExample}</ExampleText>
+        <Box sx={{ position: "relative" }}>
+          <ExampleText
+            sx={{
+              position: "relative",
+              color: isTutorialMode ? "primary.main" : "text.primary",
+              "&::before": {
+                content: '""',
+                position: "absolute",
+                left: 0,
+                top: 0,
+                width: "100%",
+                height: "100%",
+                background: "rgba(0, 255, 255, 0.1)",
+                animation: isTutorialMode
+                  ? "highlightPulse 2s infinite"
+                  : "none",
+                borderRadius: "4px",
+                zIndex: -1,
+              },
+              animation: isTutorialMode ? "scaleText 2s infinite" : "none",
+              "@keyframes highlightPulse": {
+                "0%, 100%": {
+                  background: "rgba(0, 255, 255, 0.1)",
+                },
+                "50%": {
+                  background: "rgba(0, 255, 255, 0.3)",
+                },
+              },
+              "@keyframes scaleText": {
+                "0%, 100%": {
+                  transform: "scale(1)",
+                  // color: theme.palette.primary.main,
+                },
+                "50%": {
+                  transform: "scale(1.05)",
+                  // color: theme.palette.primary.light,
+                },
+              },
+            }}
+          >
+            {selectedExample}
+          </ExampleText>
+
+          {/* ... existing tooltip code ... */}
+        </Box>
       )}
       {hasAudio && (
         <Stack
@@ -694,11 +830,46 @@ const ChooseOptions: React.FC = () => {
                 },
               }}
             >
-              Skip & Publish
+              Encrypt
             </Button>
           </Stack>
         </Stack>
       )}
+
+      {/* {showTutorialTooltip && isRecording && (
+        <Box
+          sx={{
+            // position: "absolute",
+            // top: "90%",
+            // left: "50%",
+            // transform: "translate(-50%, 0)",
+            backgroundColor: "rgba(0, 255, 255, 0.1)",
+            padding: 2,
+            borderRadius: 2,
+            border: "1px solid rgba(0, 255, 255, 0.3)",
+            backdropFilter: "blur(4px)",
+            maxWidth: 300,
+            textAlign: "center",
+            animation: "fadeIn 0.3s ease-in-out",
+            zIndex: 10,
+            "&::before": {
+              content: '""',
+              position: "absolute",
+              top: -8,
+              left: "50%",
+              transform: "translateX(-50%)",
+              borderStyle: "solid",
+              borderWidth: "0 8px 8px 8px",
+              borderColor:
+                "transparent transparent rgba(0, 255, 255, 0.3) transparent",
+            },
+          }}
+        >
+          <Typography>
+            Say this example out loud while recording and then hit stop
+          </Typography>
+        </Box>
+      )} */}
     </Box>
   );
 };
