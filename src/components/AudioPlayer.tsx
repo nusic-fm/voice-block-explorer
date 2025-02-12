@@ -4,6 +4,7 @@ import { styled } from "@mui/material/styles";
 import PlayArrowRounded from "@mui/icons-material/PlayArrowRounded";
 import PauseRounded from "@mui/icons-material/PauseRounded";
 import DownloadRounded from "@mui/icons-material/DownloadRounded";
+import CloseIcon from "@mui/icons-material/Close";
 
 const PlayerContainer = styled(Box)(({ theme }) => ({
   width: "100%",
@@ -34,9 +35,16 @@ const TimeSlider = styled(Slider)(({ theme }) => ({
 interface AudioPlayerProps {
   src: string;
   title?: string;
+  showCloseButton?: boolean;
+  onClose?: () => void;
 }
 
-const AudioPlayer: React.FC<AudioPlayerProps> = ({ src, title }) => {
+const AudioPlayer: React.FC<AudioPlayerProps> = ({
+  src,
+  title,
+  showCloseButton,
+  onClose,
+}) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
@@ -47,7 +55,9 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ src, title }) => {
     if (!audio) return;
 
     const handleLoadedMetadata = () => {
-      setDuration(audio.duration);
+      if (isFinite(audio.duration)) {
+        setDuration(audio.duration);
+      }
     };
 
     const handleTimeUpdate = () => {
@@ -59,14 +69,22 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ src, title }) => {
       setCurrentTime(0);
     };
 
+    const handleDurationChange = () => {
+      if (isFinite(audio.duration)) {
+        setDuration(audio.duration);
+      }
+    };
+
     audio.addEventListener("loadedmetadata", handleLoadedMetadata);
     audio.addEventListener("timeupdate", handleTimeUpdate);
     audio.addEventListener("ended", handleEnded);
+    audio.addEventListener("durationchange", handleDurationChange);
 
     return () => {
       audio.removeEventListener("loadedmetadata", handleLoadedMetadata);
       audio.removeEventListener("timeupdate", handleTimeUpdate);
       audio.removeEventListener("ended", handleEnded);
+      audio.removeEventListener("durationchange", handleDurationChange);
     };
   }, []);
 
@@ -114,11 +132,18 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ src, title }) => {
   return (
     <PlayerContainer>
       <audio ref={audioRef} src={src} />
-      {title && (
-        <Typography variant="caption" color="textSecondary" noWrap>
-          {title}
-        </Typography>
-      )}
+      <Box display="flex" alignItems="center" justifyContent="space-between">
+        {title && (
+          <Typography variant="caption" color="textSecondary" noWrap>
+            {title}
+          </Typography>
+        )}
+        {showCloseButton && (
+          <IconButton onClick={onClose}>
+            <CloseIcon />
+          </IconButton>
+        )}
+      </Box>
       <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
         <IconButton
           onClick={handlePlayPause}
@@ -130,7 +155,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ src, title }) => {
           {isPlaying ? <PauseRounded /> : <PlayArrowRounded />}
         </IconButton>
         <Box sx={{ flex: 1, display: "flex", alignItems: "center", gap: 2 }}>
-          <Typography variant="caption" color="textSecondary">
+          <Typography variant="caption" color="textSecondary" width={40}>
             {formatTime(currentTime)}
           </Typography>
           <TimeSlider
@@ -138,10 +163,13 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ src, title }) => {
             value={currentTime}
             max={duration}
             onChange={handleSliderChange}
+            sx={{ width: 100 }}
           />
-          <Typography variant="caption" color="textSecondary">
-            {formatTime(duration)}
-          </Typography>
+          {!!duration && (
+            <Typography variant="caption" color="textSecondary">
+              {formatTime(duration)}
+            </Typography>
+          )}
         </Box>
         <IconButton
           onClick={handleDownload}

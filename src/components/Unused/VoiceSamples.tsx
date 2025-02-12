@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { getSpeakerAudioUrl } from "../helper";
+import { getSpeakerAudioUrl } from "../../helper";
 import { Button, CircularProgress, IconButton, Stack } from "@mui/material";
 import PauseIcon from "@mui/icons-material/Pause";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";

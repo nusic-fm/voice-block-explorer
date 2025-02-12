@@ -1,5 +1,10 @@
-import { Box } from "@mui/material";
-import React, { useEffect, useRef } from "react";
+import { Box, CircularProgress, IconButton } from "@mui/material";
+import React, { useEffect, useRef, useState } from "react";
+// import VoiceRecorderElem from "./VoiceRecorderElem";
+import AudioPlayer from "./AudioPlayer";
+import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
+import { uploadToUserUploadsStorage } from "../services/storage/userUploads.storage";
+import VoiceRecorderElem from "./VoiceRecorderElem";
 
 interface Particle {
   element: HTMLDivElement;
@@ -107,7 +112,10 @@ const styles = {
   `,
 };
 
-const KrakenEffect: React.FC<{ isLoading: boolean }> = ({ isLoading }) => {
+const KrakenEffect: React.FC<{
+  isLoading: boolean;
+  onVoiceReady: (audioUrl: string) => void;
+}> = ({ isLoading, onVoiceReady }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const particlesRef = useRef<Particle[]>([]);
   const timeRef = useRef(0);
@@ -121,6 +129,11 @@ const KrakenEffect: React.FC<{ isLoading: boolean }> = ({ isLoading }) => {
   const frameIntervalRef = useRef(1000 / 30);
   const lastFrameTimeRef = useRef(0);
   const transformUpdatesRef = useRef(new Map<HTMLElement, string>());
+  const [isIntense, setIsIntense] = useState(false);
+  // const [recorededAudioBlob, setRecorededAudioBlob] = useState<Blob | null>(
+  //   null
+  // );
+  const [isUploading, setIsUploading] = useState(false);
 
   const createParticle = (
     x: number,
@@ -303,35 +316,49 @@ const KrakenEffect: React.FC<{ isLoading: boolean }> = ({ isLoading }) => {
     timeRef.current += 0.016;
     transformUpdatesRef.current.clear();
 
-    // Get container bounds once per frame
     const container = containerRef.current;
     const containerBounds = container?.getBoundingClientRect();
+
+    // Intensity multipliers
+    const intensityMultiplier = isIntense ? 2.5 : 1;
+    const speedMultiplier = isIntense ? 1.8 : 1;
+    const radiusMultiplier = isIntense ? 1.4 : 1;
 
     particlesRef.current.forEach((particle) => {
       let x = particle.baseX;
       let y = particle.baseY;
 
       if (particle.depth !== undefined) {
+        // Increase wave amplitude and frequency for branches
         const wave =
-          Math.sin(timeRef.current * 2 + particle.segment! * 5) *
-          (20 - particle.depth * 5);
+          Math.sin(
+            timeRef.current * 2.5 * speedMultiplier + particle.segment! * 5
+          ) *
+          (20 - particle.depth * 5) *
+          intensityMultiplier;
         const wave2 =
-          Math.cos(timeRef.current + particle.segment! * 3) *
-          (15 - particle.depth * 4);
+          Math.cos(
+            timeRef.current * 1.5 * speedMultiplier + particle.segment! * 3
+          ) *
+          (15 - particle.depth * 4) *
+          intensityMultiplier;
 
         x += Math.cos(particle.angle!) * wave;
-        y += Math.sin(particle.angle!) * wave;
+        y += Math.sin(particle.angle!) * wave2;
       } else {
-        particle.angle! += particle.speed! * 0.02;
+        // Increase movement for floating particles
+        particle.angle! += particle.speed! * 0.02 * speedMultiplier;
         if (containerBounds) {
           const radius =
-            particle.radius! * (1 + Math.sin(timeRef.current) * 0.1);
+            particle.radius! *
+            (1 + Math.sin(timeRef.current * speedMultiplier) * 0.2) *
+            radiusMultiplier;
           x = containerBounds.width / 2 + Math.cos(particle.angle!) * radius;
           y = containerBounds.height / 2 + Math.sin(particle.angle!) * radius;
         }
       }
 
-      // Calculate mouse position relative to container
+      // Increase mouse interaction radius and force
       if (containerBounds) {
         const relativeMouseX = mouseRef.current.x - containerBounds.left;
         const relativeMouseY = mouseRef.current.y - containerBounds.top;
@@ -340,8 +367,11 @@ const KrakenEffect: React.FC<{ isLoading: boolean }> = ({ isLoading }) => {
         const dy = relativeMouseY - y;
         const dist = Math.hypot(dx, dy);
 
-        if (dist < 150) {
-          const force = (1 - dist / 150) * 15;
+        const interactionRadius = isIntense ? 200 : 150;
+        const forceMultiplier = isIntense ? 25 : 15;
+
+        if (dist < interactionRadius) {
+          const force = (1 - dist / interactionRadius) * forceMultiplier;
           x += (dx / dist) * force;
           y += (dy / dist) * force;
         }
@@ -376,12 +406,6 @@ const KrakenEffect: React.FC<{ isLoading: boolean }> = ({ isLoading }) => {
     document.body.appendChild(percentageDisplay);
     percentageDisplayRef.current = percentageDisplay;
 
-    // // Start loading effect
-    // startLoading(() => {
-    //   console.log("Loading complete!");
-    //   // You can add any additional logic here after loading is complete
-    // });
-
     return () => {
       window.removeEventListener("mousemove", handleMouseMove);
       // Cleanup particles
@@ -415,6 +439,30 @@ const KrakenEffect: React.FC<{ isLoading: boolean }> = ({ isLoading }) => {
     };
   }, []);
 
+  // const handleRecordingComplete = (audioBlob: Blob) => {
+  //   console.log("Recording finished:", audioBlob);
+  //   setRecorededAudioBlob(audioBlob);
+  //   setIsIntense(false);
+  // };
+
+  // const handleRecordingStateChange = (isRecording: boolean) => {
+  //   setIsIntense(isRecording);
+  // };
+
+  // const onProceedWithVoice = async () => {
+  //   if (!recorededAudioBlob) return;
+  //   setIsUploading(true);
+  //   const randomId = Math.random().toString(36).substring(2, 15);
+  //   const fileName = `${randomId}.mp3`;
+  //   const uploadUrl = await uploadToUserUploadsStorage(
+  //     recorededAudioBlob,
+  //     fileName
+  //   );
+  //   console.log({ uploadUrl });
+  //   onVoiceReady(uploadUrl);
+  //   setIsUploading(false);
+  // };
+
   return (
     <Box ref={containerRef} component="div" sx={styles.container}>
       <Box component="div" sx={styles.avaTitle}>
@@ -425,6 +473,39 @@ const KrakenEffect: React.FC<{ isLoading: boolean }> = ({ isLoading }) => {
           AI Voice Agents
         </Box>
       </Box>
+      {/* {recorededAudioBlob ? (
+        <Box
+          sx={{
+            position: "fixed",
+            bottom: "2rem",
+            left: "50%",
+            zIndex: 9999,
+            transform: "translateX(-50%)",
+          }}
+          display="flex"
+          alignItems="center"
+          justifyContent="center"
+          flexDirection="column"
+          gap={2}
+        >
+          <AudioPlayer
+            src={URL.createObjectURL(recorededAudioBlob)}
+            title="Recorded Voice"
+            showCloseButton={true}
+            onClose={() => {
+              setRecorededAudioBlob(null);
+            }}
+          />
+          <IconButton onClick={onProceedWithVoice}>
+            {isUploading ? <CircularProgress /> : <ArrowForwardIcon />}
+          </IconButton>
+        </Box>
+      ) : (
+        <VoiceRecorderElem
+          onRecordingComplete={handleRecordingComplete}
+          onRecordingStateChange={handleRecordingStateChange}
+        />
+      )} */}
     </Box>
   );
 };

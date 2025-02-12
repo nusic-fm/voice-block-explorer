@@ -9,7 +9,7 @@ import {
 } from "@mui/material";
 import axios from "axios";
 import { useEffect, useState } from "react";
-import { TwitterResult } from "../App";
+import { TwitterResult } from "../../App";
 
 export type Conversation = {
   isUser: boolean;

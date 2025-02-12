@@ -1,23 +1,12 @@
 import { Box, Button, Stack, Typography } from "@mui/material";
-import "./app.css";
-import AudioExplorerChat, {
-  Conversation,
-} from "./components/AudioExplorerChat";
 import KrakenEffect from "./components/KrakenEffect";
 import { useEffect, useState } from "react";
-import VideoOption from "./components/VideoOption";
 import axios from "axios";
-import {
-  getPyannoteJob,
-  PyannoteJob,
-} from "./services/db/pyannoteJobs.service";
-import VoiceSamples from "./components/VoiceSamples";
-import AnalyticsExplorer from "./components/AnalyticsExplorer";
-import { createVoice, Voice, VoiceDoc } from "./services/db/voices.service";
-import { getSpeakerAudioUrl, randomEmoji } from "./helper";
-import UploadAudio from "./components/UploadAudio";
 import EmotionSphere from "./components/EmotionSphere";
 import TtsArea from "./components/TtsArea";
+import "./app.css";
+import { UserVoiceSample } from "./services/db/userVoice.service";
+import ChooseOptions from "./components/ChooseOptions";
 
 export type TwitterResult = {
   id: string;
@@ -31,207 +20,78 @@ export type TwitterResult = {
 };
 
 const App: React.FC = () => {
-  // const [youtubeResults, setYoutubeResults] = useState<
-  //   { url: string; title: string; id: string; description: string }[]
-  // >([]);
-  const [twitterResults, setTwitterResults] = useState<TwitterResult[]>([]);
   const [isKrakenLoading, setIsKrakenLoading] = useState<boolean>(false);
-  const [conversations, setConversations] = useState<Conversation[]>([]);
-  const [showUpload, setShowUpload] = useState<boolean>(false);
-  const [selectedVideo, setSelectedVideo] = useState<TwitterResult | null>(
-    null
-  );
   const [showEmotionSphere, setShowEmotionSphere] = useState<boolean>(false);
   const [showTts, setShowTts] = useState<boolean>(false);
-  const [selectedVoice, setSelectedVoice] = useState<VoiceDoc | null>(null);
-  const [ttsInput, setTtsInput] = useState<string>("");
-  // {
-  //     id: "9d8bc06b-1261-4f1d-8e41-854d0e6f7da3",
-  //     speakers: [
-  //       "SPEAKER_00_combined.mp3",
-  //       "SPEAKER_01_combined.mp3",
-  //       "SPEAKER_02_combined.mp3",
-  //     ],
-  //     status: "completed",
-  //     audioPath: "tts-yt-audio/9d8bc06b-1261-4f1d-8e41-854d0e6f7da3",
-  //     audioUrl:
-  //       "https://firebasestorage.googleapis.com/v0/b/nusic-ai-agent.appspot.com/o/tts-yt-audio%2F9d8bc06b-1261-4f1d-8e41-854d0e6f7da3%2FSPEAKER_00_combined.mp3?alt=media&token=61111111-1111-1111-1111-111111111111",
+  const [userVoiceInfo, setUserVoiceInfo] = useState<UserVoiceSample | null>(
+    null
+  );
+
+  // const onGenerate = async (speakerPath: string) => {
+  //   setIsKrakenLoading(true);
+  //   const _voice: Voice = {
+  //     audioPath: speakerPath,
+  //     name: nftInfo?.name || "---",
+  //     symbol: nftInfo?.symbol || "---",
+  //     jobId: jobInfo.id,
+  //     audioUrl: getSpeakerAudioUrl(jobInfo.id, speakerPath),
+  //     isNFTDeployed: false,
+  //     yVid: selectedVideo?.videoId,
+  //     tweetTitle: selectedVideo?.text,
+  //     twitterUsername: selectedVideo?.username,
+  //     tweetId: selectedVideo?.id,
+  //     tweetVideoUrl: selectedVideo?.videoUrl,
+  //     emoji: nftInfo?.emoji || randomEmoji(),
+  //     duration: Math.floor(Math.random() * 60) + 60,
+  //   };
+  //   const voiceId = await createVoice(_voice);
+  //   setConversations((prev) => [
+  //     ...prev,
+  //     { isUser: false, content: `Creating your NFT...` },
+  //   ]);
+  //   try {
+  //     const res = await axios.post(
+  //       `${import.meta.env.VITE_AGENT_SERVER_URL}/deploy-nft`,
+  //       {
+  //         voice_name: nftInfo?.name,
+  //         nft_name: nftInfo?.name,
+  //         nft_symbol: nftInfo?.symbol,
+  //       }
+  //     );
+  //     const tx = res.data.tx;
+  //     if (tx) {
+  //       setSelectedVoice({ ..._voice, id: voiceId });
+  //       setConversations((prev) => [
+  //         ...prev,
+  //         {
+  //           isUser: false,
+  //           content: `Your NFT is deployed!`,
+  //           link: `${import.meta.env.VITE_BASESCAN_URL}/${tx}`,
+  //           isHighlight: true,
+  //         },
+  //         {
+  //           isUser: false,
+  //           content: `You can now do Text to Speech with your Audio Dataset! Type in something to hear it in the chosen voice!`,
+  //           isHighlight: true,
+  //         },
+  //       ]);
+  //       setShowTts(true);
+  //     } else {
+  //       setConversations((prev) => [
+  //         ...prev,
+  //         {
+  //           isUser: false,
+  //           content: `Error deploying your NFT, please try again later.`,
+  //         },
+  //       ]);
+  //     }
+  //   } catch (e) {
+  //     console.log(e);
+  //   } finally {
+  //     setIsKrakenLoading(false);
+  //     // setShowEmotionSphere(true);
   //   }
-  const [jobInfo, setJobInfo] = useState<PyannoteJob | null>(null);
-  const [nftInfo, setNftInfo] = useState<{
-    name: string;
-    symbol: string;
-    emoji: string;
-  } | null>(null);
-
-  const fetchSpeakersUrl = async (
-    video_url: string,
-    isAudio: boolean = false,
-    audio_path?: string,
-    video_id?: string
-  ) => {
-    try {
-      const response = await axios.post(
-        `${import.meta.env.VITE_AGENT_SERVER_URL}/${
-          isAudio ? "speakers-extraction" : "video-speakers-extraction"
-        }`,
-        isAudio ? { audio_url: video_url, audio_path } : { video_url, video_id }
-      );
-      const { jobId } = response.data;
-      getPyannoteJob(jobId, (job) => {
-        const speakers = job?.speakers;
-        if (speakers && speakers?.length > 0) {
-          setJobInfo(job);
-          setIsKrakenLoading(false);
-          setConversations((prev) => [
-            ...prev,
-            {
-              isUser: false,
-              content:
-                speakers.length > 1
-                  ? `There was more than one voice in that video, could you listen to these clips and select which voice it is you wish your agent to have?`
-                  : `One speaker detected. Click Choose Speaker 1 to create your NFT...`,
-            },
-          ]);
-        }
-      });
-      if (selectedVideo || conversations.length > 0) {
-        try {
-          const response = await axios.post(
-            `${import.meta.env.VITE_AGENT_SERVER_URL}/fetch-nft-info`,
-            {
-              text: conversations[0].content,
-            }
-          );
-          console.log(response.data);
-          const { nftInfo } = response.data;
-          setNftInfo(nftInfo);
-          setConversations((prev) => [
-            ...prev,
-            {
-              isUser: false,
-              content: `My suggestion for the name of your NFT is: ${nftInfo.name} (symbol: ${nftInfo.symbol})`,
-              isHighlight: true,
-            },
-          ]);
-        } catch (e) {
-          console.log(e);
-        }
-      }
-    } catch (e: any) {
-      setIsKrakenLoading(false);
-      if (e.response.data.type === "VIDEO_DOWNLOAD") {
-        setShowUpload(true);
-        setConversations((prev) => [
-          ...prev,
-          {
-            isUser: false,
-            content: "Oh uh! One of the services is down!",
-            isError: true,
-          },
-          {
-            isUser: false,
-            content: "Meanwhile, you can try uploading the audio yourself",
-            isHighlight: true,
-          },
-        ]);
-      }
-    } finally {
-    }
-  };
-
-  const onVideoSelected = async (video: TwitterResult) => {
-    setSelectedVideo(video);
-    setTwitterResults([]);
-    setIsKrakenLoading(true);
-    setConversations((prev) => [
-      ...prev,
-      {
-        isUser: false,
-        content: `Processing your selection "${video.text}"`,
-      },
-    ]);
-    await fetchSpeakersUrl(video.videoUrl, false, undefined, video.videoId);
-  };
-
-  const onGenerate = async (speakerPath: string) => {
-    setIsKrakenLoading(true);
-    setJobInfo(null);
-
-    setConversations((prev) => [
-      ...prev,
-      { isUser: false, content: `Generating your NFT...` },
-    ]);
-    if (!jobInfo?.id) return;
-    const _voice: Voice = {
-      audioPath: speakerPath,
-      name: nftInfo?.name || "---",
-      symbol: nftInfo?.symbol || "---",
-      jobId: jobInfo.id,
-      audioUrl: getSpeakerAudioUrl(jobInfo.id, speakerPath),
-      isNFTDeployed: false,
-      yVid: selectedVideo?.videoId,
-      tweetTitle: selectedVideo?.text,
-      twitterUsername: selectedVideo?.username,
-      tweetId: selectedVideo?.id,
-      tweetVideoUrl: selectedVideo?.videoUrl,
-      emoji: nftInfo?.emoji || randomEmoji(),
-      duration: Math.floor(Math.random() * 60) + 60,
-    };
-    const voiceId = await createVoice(_voice);
-    setConversations((prev) => [
-      ...prev,
-      { isUser: false, content: `Creating your NFT...` },
-    ]);
-    try {
-      const res = await axios.post(
-        `${import.meta.env.VITE_AGENT_SERVER_URL}/deploy-nft`,
-        {
-          voice_name: nftInfo?.name,
-          nft_name: nftInfo?.name,
-          nft_symbol: nftInfo?.symbol,
-        }
-      );
-      const tx = res.data.tx;
-      if (tx) {
-        setSelectedVoice({ ..._voice, id: voiceId });
-        setConversations((prev) => [
-          ...prev,
-          {
-            isUser: false,
-            content: `Your NFT is deployed!`,
-            link: `${import.meta.env.VITE_BASESCAN_URL}/${tx}`,
-            isHighlight: true,
-          },
-          {
-            isUser: false,
-            content: `You can now do Text to Speech with your Audio Dataset! Type in something to hear it in the chosen voice!`,
-            isHighlight: true,
-          },
-        ]);
-        setShowTts(true);
-      } else {
-        setConversations((prev) => [
-          ...prev,
-          {
-            isUser: false,
-            content: `Error deploying your NFT, please try again later.`,
-          },
-        ]);
-      }
-    } catch (e) {
-      console.log(e);
-    } finally {
-      setIsKrakenLoading(false);
-      // setShowEmotionSphere(true);
-    }
-  };
-
-  useEffect(() => {
-    if (twitterResults.length > 0) {
-      setShowEmotionSphere(false);
-    }
-  }, [twitterResults]);
+  // };
 
   return (
     <Box
@@ -243,21 +103,12 @@ const App: React.FC = () => {
         backdropFilter: "blur(20px)",
       }}
     >
-      <Box
-        width={"400px"}
-        height={"100%"}
-        ml={"auto"}
-        borderRight={"1px solid rgba(0, 255, 255, 0.2)"}
-        px={1}
-      >
-        <AnalyticsExplorer />
-      </Box>
-      <Box width={"calc(100% - 800px)"} position={"relative"} height={"100%"}>
+      <Box width={"100%"} position={"relative"} height={"100%"}>
         {showEmotionSphere ? (
           <EmotionSphere />
         ) : (
           <>
-            <KrakenEffect isLoading={isKrakenLoading} />
+            <KrakenEffect isLoading={isKrakenLoading} onVoiceReady={() => {}} />
             <Box
               position={"relative"}
               height={"100%"}
@@ -267,94 +118,30 @@ const App: React.FC = () => {
               justifyContent={"center"}
               zIndex={99}
             >
-              {jobInfo?.speakers ? (
-                <VoiceSamples
-                  jobId={jobInfo.id}
-                  speakers={jobInfo.speakers}
-                  onGenerate={onGenerate}
-                />
-              ) : twitterResults.length || showUpload ? (
-                <Box height={"100%"} display={"flex"} alignItems={"center"}>
-                  <Stack
-                    direction={"row"}
-                    flexWrap={"wrap"}
-                    justifyContent={"center"}
-                    alignItems={"center"}
-                    height={"100%"}
-                    gap={4}
-                  >
-                    {showUpload && (
-                      <UploadAudio
-                        onUploadStarted={() => setIsKrakenLoading(true)}
-                        onUploadComplete={async (
-                          url: string,
-                          filename: string
-                        ) => {
-                          setShowUpload(false);
-                          await fetchSpeakersUrl(url, true, filename);
-                          // setIsKrakenLoading(false);
-                        }}
-                      />
-                    )}
-                    <Box
-                      display={"flex"}
-                      flexWrap={"wrap"}
-                      gap={4}
-                      height={"90%"}
-                      p={1}
-                      sx={{ overflowY: "auto" }}
-                    >
-                      {twitterResults.map((result) => (
-                        <VideoOption
-                          key={result.videoId}
-                          video={result}
-                          onVideoSelected={onVideoSelected}
-                        />
-                      ))}
-                    </Box>
-                  </Stack>
-                </Box>
-              ) : showTts && selectedVoice ? (
+              {/* <Box mb="auto" mt={2}>
+                <Button
+                  size="small"
+                  variant="text"
+                  onClick={() => setShowEmotionSphere(true)}
+                  sx={{
+                    opacity: 0.8,
+                    mb: 1,
+                  }}
+                >
+                  Go to Explorer
+                </Button>
+              </Box> */}
+              <ChooseOptions />
+              {/* {currentState === "kraken" && <FlowSelection />} */}
+              {/* {currentState === "tts" && selectedVoice ? (
                 <Box>
                   <TtsArea ttsInput={ttsInput} voice={selectedVoice} />
                 </Box>
               ) : (
-                <Box mt="auto">
-                  <Button
-                    size="small"
-                    variant="text"
-                    onClick={() => setShowEmotionSphere(true)}
-                    sx={{
-                      opacity: 0.8,
-                      mb: 1,
-                    }}
-                  >
-                    Go to Explorer
-                  </Button>
-                </Box>
-              )}
+              )} */}
             </Box>
           </>
         )}
-      </Box>
-      <Box
-        width={"400px"}
-        height={"100%"}
-        ml={"auto"}
-        borderLeft={"1px solid rgba(0, 255, 255, 0.2)"}
-        px={1}
-      >
-        <AudioExplorerChat
-          twitterResults={twitterResults}
-          setTwitterResults={setTwitterResults}
-          onLoadingStarted={() => setIsKrakenLoading(true)}
-          onLoadingCompleted={() => setIsKrakenLoading(false)}
-          conversations={conversations}
-          setConversations={setConversations}
-          showTts={showTts}
-          ttsInput={ttsInput}
-          setTtsInput={setTtsInput}
-        />
       </Box>
     </Box>
   );

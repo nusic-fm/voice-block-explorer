@@ -1,6 +1,6 @@
 import { Box, Typography, Button, Stack } from "@mui/material";
 import React from "react";
-import { TwitterResult } from "../App";
+import { TwitterResult } from "../../App";
 
 interface VideoProps {
   video: TwitterResult;

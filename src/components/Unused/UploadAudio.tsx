@@ -1,7 +1,7 @@
 import { useState, useRef, DragEvent, ChangeEvent } from "react";
 import { Box, Typography } from "@mui/material";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
-import { uploadToYtAudioStorage } from "../services/storage/ytAudio.storage";
+import { uploadToYtAudioStorage } from "../../services/storage/ytAudio.storage";
 
 interface UploadAudioProps {
   onUploadStarted?: () => void;
