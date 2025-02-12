@@ -88,7 +88,8 @@ const Container = styled(Box, {
   width: isShrinked ? 80 : 300,
   height: isShrinked ? 80 : 300,
   borderRadius: "50%",
-  border: `2px solid ${theme.palette.divider}`,
+  // border: `2px solid rgba(0, 255, 255, 0.4)`,
+  boxShadow: `0 8px 32px rgba(0, 255, 255, 0.15)`,
   display: "flex",
   justifyContent: "center",
   alignItems: "center",
@@ -99,8 +100,9 @@ const Container = styled(Box, {
 }));
 
 const SelectionArea = styled(Box, {
-  shouldForwardProp: (prop) => prop !== "angle",
-})<{ angle: number }>(({ theme, angle }) => ({
+  shouldForwardProp: (prop) =>
+    !["angle", "selectedIndex"].includes(prop as string),
+})<{ angle: number; selectedIndex: number }>(({ theme, selectedIndex }) => ({
   position: "absolute",
   width: "100%",
   height: "100%",
@@ -113,17 +115,30 @@ const SelectionArea = styled(Box, {
     width: "100%",
     height: "100%",
     background: `conic-gradient(
-      from ${angle + 40}deg,
-      transparent 0deg,
-      transparent 30deg,
-      ${theme.palette.primary.main}20 30deg,
-      ${theme.palette.primary.main}20 70deg,
-      transparent 70deg
+      from ${270 + (selectedIndex + 1) * 60}deg,
+      ${theme.palette.primary.main}20 0deg,
+      ${theme.palette.primary.main}20 60deg,
+      transparent 60deg,
+      transparent 360deg
     )`,
     borderRadius: "50%",
-    transition: theme.transitions.create("transform", {
-      duration: theme.transitions.duration.shorter,
-    }),
+  },
+  "&::after": {
+    content: '""',
+    position: "absolute",
+    top: 0,
+    left: 0,
+    width: "100%",
+    height: "100%",
+    background: `
+      linear-gradient(0deg, transparent 49.5%, ${theme.palette.primary.main}20 49.5%, ${theme.palette.primary.main}20 50.5%, transparent 50.5%),
+      linear-gradient(60deg, transparent 49.5%, ${theme.palette.primary.main}20 49.5%, ${theme.palette.primary.main}20 50.5%, transparent 50.5%),
+      linear-gradient(120deg, transparent 49.5%, ${theme.palette.primary.main}20 49.5%, ${theme.palette.primary.main}20 50.5%, transparent 50.5%),
+      linear-gradient(180deg, transparent 49.5%, ${theme.palette.primary.main}20 49.5%, ${theme.palette.primary.main}20 50.5%, transparent 50.5%),
+      linear-gradient(240deg, transparent 49.5%, ${theme.palette.primary.main}20 49.5%, ${theme.palette.primary.main}20 50.5%, transparent 50.5%),
+      linear-gradient(300deg, transparent 49.5%, ${theme.palette.primary.main}20 49.5%, ${theme.palette.primary.main}20 50.5%, transparent 50.5%)
+    `,
+    borderRadius: "50%",
   },
 }));
 
@@ -154,9 +169,10 @@ const EmotionBox = styled(Box, {
   transition: theme.transitions.create(["transform", "background-color"], {
     duration: theme.transitions.duration.shorter,
   }),
-  transform: `rotate(${angle}deg) translate(100px) rotate(-${angle}deg)`,
+  transform: `rotate(${angle}deg) translate(100px) rotate(-${angle}deg) ${
+    isSelected ? "scale(1.4)" : "scale(1)"
+  }`,
   backgroundColor: isSelected ? theme.palette.action.selected : "transparent",
-  scale: isSelected ? 1.2 : 1,
   zIndex: 1,
   cursor: "pointer",
 }));
@@ -376,6 +392,11 @@ const ChooseOptions: React.FC = () => {
     }
   };
 
+  const getSelectedIndex = (name: string | null) => {
+    if (!name) return 0;
+    return emotions.findIndex((e) => e.name === name);
+  };
+
   return (
     <Box
       sx={{
@@ -406,6 +427,7 @@ const ChooseOptions: React.FC = () => {
         isShrinked={isRecording}
       >
         <SelectionArea
+          selectedIndex={getSelectedIndex(selectedEmotion)}
           angle={selectionAngle}
           sx={{
             opacity: isRecording ? 0 : 1,
