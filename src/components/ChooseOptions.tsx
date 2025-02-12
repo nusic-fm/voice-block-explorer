@@ -250,6 +250,7 @@ const ChooseOptions: React.FC = () => {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [freezeSelectionChange, setFreezeSelectionChange] = useState(false);
 
   const handleMicClick = async () => {
     if (!selectedEmotion) return;
@@ -259,14 +260,15 @@ const ChooseOptions: React.FC = () => {
       const randomExample =
         emotion.examples[Math.floor(Math.random() * emotion.examples.length)];
       setSelectedExample(randomExample);
-      setIsRecording(true);
     }
 
     // Recording
     try {
+      setFreezeSelectionChange(true);
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: true,
       });
+      setIsRecording(true);
       const mediaRecorder = new MediaRecorder(stream);
       mediaRecorderRef.current = mediaRecorder;
       audioChunksRef.current = [];
@@ -289,6 +291,7 @@ const ChooseOptions: React.FC = () => {
               : emotion
           )
         );
+        setFreezeSelectionChange(false);
         setIsRecording(false);
         // if (onRecordingComplete) {
         //   onRecordingComplete(audioBlob);
@@ -304,6 +307,8 @@ const ChooseOptions: React.FC = () => {
       //     onRecordingStateChange(true);
       //   }
     } catch (error) {
+      setFreezeSelectionChange(false);
+      alert("Please enable microphone access");
       console.error("Error accessing microphone:", error);
     }
   };
@@ -323,7 +328,7 @@ const ChooseOptions: React.FC = () => {
   };
 
   const handleMouseMove = (e: React.MouseEvent) => {
-    if (isRecording) return;
+    if (isRecording || freezeSelectionChange) return;
     if (containerRef.current) {
       const rect = containerRef.current.getBoundingClientRect();
       const center = {
