@@ -112,9 +112,8 @@ const getEmojiFromEmotionId = (emotionId: string) => {
   if (emotionId === "disgust") return "🤢";
   if (emotionId === "trust") return "🤝";
   if (emotionId === "anticipation") return "🤞";
-  if (emotionId === "surprise") return "😲";
+  if (emotionId === "excited") return "🤩";
 
-  return "🤔";
 };
 
 export {
