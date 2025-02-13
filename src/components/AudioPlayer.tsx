@@ -119,7 +119,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = title || "audio";
+      a.download = "audio.mp3";
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
