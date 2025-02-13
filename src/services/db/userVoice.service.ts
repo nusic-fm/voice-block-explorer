@@ -1,4 +1,4 @@
-import { addDoc, collection, serverTimestamp } from "firebase/firestore";
+import { doc, serverTimestamp, setDoc } from "firebase/firestore";
 import { db } from "../firebase.service";
 
 export type UserVoiceSample = {
@@ -12,10 +12,9 @@ const COLLECTION_NAME = "user-voice-samples";
 export const createUserVoiceSample = async (
   userVoiceSample: UserVoiceSample
 ) => {
-  const userVoiceSampleRef = collection(db, COLLECTION_NAME);
-  const docRef = await addDoc(userVoiceSampleRef, {
+  const userVoiceSampleRef = doc(db, COLLECTION_NAME, userVoiceSample.name);
+  await setDoc(userVoiceSampleRef, {
     ...userVoiceSample,
     createdAt: serverTimestamp(),
   });
-  return docRef.id;
 };

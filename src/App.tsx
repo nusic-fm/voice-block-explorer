@@ -1,6 +1,6 @@
-import { Box, Button } from "@mui/material";
+import { Box, Snackbar, Typography } from "@mui/material";
 import KrakenEffect from "./components/KrakenEffect";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import EmotionSphere from "./components/EmotionSphere";
 import "./app.css";
 import { createUserVoiceSample } from "./services/db/userVoice.service";
@@ -9,6 +9,7 @@ import TtsSmartBox from "./components/TtsSmartBox";
 import AnimatedTabs from "./components/AnimatedTabs";
 import { uploadUserVoiceSample } from "./services/storage/userUploads.storage";
 import { useAccount } from "wagmi";
+import { useNFTContract } from "./services/contracts/NFTFactory";
 
 export type VoiceEmotion = {
   name: string;
@@ -24,15 +25,59 @@ const App: React.FC = () => {
   const [showEmotionSphere, setShowEmotionSphere] = useState<boolean>(false);
   const [isAudioUploading, setIsAudioUploading] = useState(false);
   const { address, isConnected } = useAccount();
+  const { deployNft, isPending, isSuccess, isError, hash } = useNFTContract({
+    contractAddress: "0x43a74a9EDC709c4bD370B65323514Bd0A82bF360",
+    abi: [
+      {
+        inputs: [
+          {
+            internalType: "string",
+            name: "_voiceName",
+            type: "string",
+          },
+          {
+            internalType: "string",
+            name: "_name",
+            type: "string",
+          },
+          {
+            internalType: "string",
+            name: "_symbol",
+            type: "string",
+          },
+          {
+            internalType: "string",
+            name: "_baseUri",
+            type: "string",
+          },
+        ],
+        name: "deployAIVoiceNFT",
+        outputs: [
+          {
+            internalType: "address",
+            name: "",
+            type: "address",
+          },
+        ],
+        stateMutability: "nonpayable",
+        type: "function",
+      },
+    ],
+  });
+  const [snackbarMessage, setSnackbarMessage] = useState<string>("");
 
-  const onEncrypt = async (emotionIds: string[], audioBlobs: Blob[]) => {
+  const onEncrypt = async (
+    voiceName: string,
+    emotionIds: string[],
+    audioBlobs: Blob[]
+  ) => {
     if (address && isConnected) {
       // TODO: Audio Analyzer /encode-hash
       setIsAudioUploading(true);
       await createUserVoiceSample({
         address,
         emotionIds,
-        name: address.slice(address.length - 6),
+        name: voiceName,
       });
       emotionIds.forEach(async (emotionId, index) => {
         await uploadUserVoiceSample(
@@ -40,9 +85,22 @@ const App: React.FC = () => {
           `${address}/${emotionId}.mp3`
         );
       });
+      // Make a tx to smart contract
+      await deployNft(
+        voiceName,
+        voiceName,
+        voiceName.slice(0, 3).toUpperCase(),
+        ""
+      );
       setIsAudioUploading(false);
     }
   };
+
+  useEffect(() => {
+    if (isSuccess && hash) {
+      setSnackbarMessage(hash);
+    }
+  }, [hash]);
 
   return (
     <Box
@@ -74,14 +132,38 @@ const App: React.FC = () => {
               justifyContent={"center"}
               zIndex={99}
             >
-              {currentTab === "emotionWheel" && (
+              {isPending && <Typography>Deploying NFT on Story...</Typography>}
+              {currentTab === "emotionWheel" && !isPending && (
                 <EmotionWheel onEncrypt={onEncrypt} isConnected={isConnected} />
               )}
-              {currentTab === "tts" && <TtsSmartBox />}
+              {currentTab === "tts" && !isPending && <TtsSmartBox />}
             </Box>
           </>
         )}
       </Box>
+      <Snackbar
+        open={snackbarMessage !== ""}
+        onClose={() => setSnackbarMessage("")}
+        disableWindowBlurListener
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+        message={
+          <Typography
+            component="a"
+            sx={{
+              color: "black",
+              textDecoration: "none",
+              "&:hover": {
+                textDecoration: "underline",
+              },
+            }}
+            href={`https://aeneid.storyscan.xyz/tx/${snackbarMessage}`}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            View on Story
+          </Typography>
+        }
+      />
     </Box>
   );
 };

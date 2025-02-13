@@ -1,5 +1,5 @@
 import React, { useState, useRef } from "react";
-import { Box, IconButton, Stack, Typography } from "@mui/material";
+import { Box, IconButton, Stack, Typography, TextField } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import MicIcon from "@mui/icons-material/Mic";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
@@ -324,7 +324,11 @@ const SubHeader = styled(Typography)(({ theme }) => ({
   },
 }));
 type Props = {
-  onEncrypt: (emotionIds: string[], audioBlobs: Blob[]) => void;
+  onEncrypt: (
+    voiceName: string,
+    emotionIds: string[],
+    audioBlobs: Blob[]
+  ) => void;
   isConnected: boolean;
 };
 const ChooseOptions: React.FC<Props> = ({ onEncrypt, isConnected }) => {
@@ -346,6 +350,7 @@ const ChooseOptions: React.FC<Props> = ({ onEncrypt, isConnected }) => {
   const [tutorialStep, setTutorialStep] = useState(0);
   const playableAudioRef = useRef<HTMLAudioElement | null>(null);
   const [isEncrypting, setIsEncrypting] = useState(false);
+  const [voiceName, setVoiceName] = useState<string>("");
 
   const displayedEmotions = isTutorialMode
     ? emotions.filter((e) => e.name === "neutral")
@@ -369,10 +374,10 @@ const ChooseOptions: React.FC<Props> = ({ onEncrypt, isConnected }) => {
     // Recording
     try {
       setFreezeSelectionChange(true);
+      setIsRecording(true);
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: true,
       });
-      setIsRecording(true);
       const mediaRecorder = new MediaRecorder(stream);
       mediaRecorderRef.current = mediaRecorder;
       audioChunksRef.current = [];
@@ -687,7 +692,7 @@ const ChooseOptions: React.FC<Props> = ({ onEncrypt, isConnected }) => {
         {selectedEmotion || "-"}
       </EmotionLabel>
       {isRecording && selectedExample && (
-        <Box sx={{ position: "relative" }}>
+        <Stack sx={{ position: "relative" }} alignItems="center">
           <ExampleText
             sx={{
               position: "relative",
@@ -718,11 +723,9 @@ const ChooseOptions: React.FC<Props> = ({ onEncrypt, isConnected }) => {
               "@keyframes scaleText": {
                 "0%, 100%": {
                   transform: "scale(1)",
-                  // color: theme.palette.primary.main,
                 },
                 "50%": {
                   transform: "scale(1.05)",
-                  // color: theme.palette.primary.light,
                 },
               },
             }}
@@ -730,10 +733,39 @@ const ChooseOptions: React.FC<Props> = ({ onEncrypt, isConnected }) => {
             {selectedExample}
           </ExampleText>
 
-          {/* ... existing tooltip code ... */}
-        </Box>
+          <Box
+            sx={{
+              mt: 2,
+              p: 1.5,
+              backgroundColor: "rgba(0, 255, 255, 0.05)",
+              borderRadius: 2,
+              border: "1px solid rgba(0, 255, 255, 0.1)",
+              display: "flex",
+              alignItems: "center",
+              gap: 1,
+            }}
+          >
+            <Typography
+              sx={{
+                color: "rgba(0, 255, 255, 0.8)",
+                fontWeight: "bold",
+                fontSize: "0.8rem",
+              }}
+            >
+              PRO TIP:
+            </Typography>
+            <Typography
+              sx={{
+                color: "text.secondary",
+                fontSize: "0.8rem",
+              }}
+            >
+              Use mic to record without background noise
+            </Typography>
+          </Box>
+        </Stack>
       )}
-      {hasAudio && (
+      {hasAudio && !isRecording && (
         <Stack
           spacing={2}
           sx={{
@@ -818,6 +850,35 @@ const ChooseOptions: React.FC<Props> = ({ onEncrypt, isConnected }) => {
             </Box>
           </Box>
 
+          {!isTutorialMode && (
+            <TextField
+              label="Voice Name"
+              value={voiceName}
+              onChange={(e) => setVoiceName(e.target.value)}
+              sx={{
+                width: "100%",
+                maxWidth: 300,
+                "& .MuiOutlinedInput-root": {
+                  "& fieldset": {
+                    borderColor: "rgba(0, 255, 255, 0.3)",
+                  },
+                  "&:hover fieldset": {
+                    borderColor: "rgba(0, 255, 255, 0.5)",
+                  },
+                  "&.Mui-focused fieldset": {
+                    borderColor: "rgba(0, 255, 255, 0.8)",
+                  },
+                },
+                "& .MuiInputLabel-root": {
+                  color: "rgba(255, 255, 255, 0.7)",
+                },
+                "& .MuiInputBase-input": {
+                  color: "white",
+                },
+              }}
+            />
+          )}
+
           <Stack
             direction="row"
             spacing={2}
@@ -844,6 +905,10 @@ const ChooseOptions: React.FC<Props> = ({ onEncrypt, isConnected }) => {
                   },
                 }}
                 onClick={async () => {
+                  if (!voiceName) {
+                    alert("Please enter a voice name");
+                    return;
+                  }
                   const emotionsIds: string[] = [];
                   const audioBlobs: Blob[] = [];
                   emotions.map((e) => {
@@ -854,7 +919,7 @@ const ChooseOptions: React.FC<Props> = ({ onEncrypt, isConnected }) => {
                   });
                   setFreezeSelectionChange(true);
                   setIsEncrypting(true);
-                  await onEncrypt(emotionsIds, audioBlobs);
+                  await onEncrypt(voiceName, emotionsIds, audioBlobs);
                   setIsEncrypting(false);
                   setFreezeSelectionChange(false);
                 }}
