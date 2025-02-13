@@ -5,6 +5,8 @@ import EmotionSphere from "./components/EmotionSphere";
 import "./app.css";
 import { UserVoiceSample } from "./services/db/userVoice.service";
 import EmotionWheel from "./components/EmotionWheel";
+import TtsSmartBox from "./components/TtsSmartBox";
+import AnimatedTabs from "./components/AnimatedTabs";
 
 export type TwitterResult = {
   id: string;
@@ -18,9 +20,11 @@ export type TwitterResult = {
 };
 
 const App: React.FC = () => {
+  const [currentTab, setCurrentTab] = useState<"emotionWheel" | "tts">(
+    "emotionWheel"
+  );
   const [isKrakenLoading, setIsKrakenLoading] = useState<boolean>(false);
   const [showEmotionSphere, setShowEmotionSphere] = useState<boolean>(false);
-  const [showTts, setShowTts] = useState<boolean>(false);
   const [userVoiceInfo, setUserVoiceInfo] = useState<UserVoiceSample | null>(
     null
   );
@@ -91,6 +95,10 @@ const App: React.FC = () => {
   //   }
   // };
 
+  const onEncrypt = async () => {
+    // TODO: Audio Analyzer /encode-hash
+  };
+
   return (
     <Box
       height="100vh"
@@ -107,6 +115,11 @@ const App: React.FC = () => {
         ) : (
           <>
             <KrakenEffect isLoading={isKrakenLoading} onVoiceReady={() => {}} />
+            <AnimatedTabs
+              tabs={["emotionWheel", "tts"]}
+              currentTab={currentTab}
+              onTabChange={setCurrentTab}
+            />
             <Box
               position={"relative"}
               height={"100%"}
@@ -116,27 +129,8 @@ const App: React.FC = () => {
               justifyContent={"center"}
               zIndex={99}
             >
-              {/* <Box mb="auto" mt={2}>
-                <Button
-                  size="small"
-                  variant="text"
-                  onClick={() => setShowEmotionSphere(true)}
-                  sx={{
-                    opacity: 0.8,
-                    mb: 1,
-                  }}
-                >
-                  Go to Explorer
-                </Button>
-              </Box> */}
-              <EmotionWheel />
-              {/* {currentState === "kraken" && <FlowSelection />} */}
-              {/* {currentState === "tts" && selectedVoice ? (
-                <Box>
-                  <TtsArea ttsInput={ttsInput} voice={selectedVoice} />
-                </Box>
-              ) : (
-              )} */}
+              {currentTab === "emotionWheel" && <EmotionWheel />}
+              {currentTab === "tts" && <TtsSmartBox />}
             </Box>
           </>
         )}

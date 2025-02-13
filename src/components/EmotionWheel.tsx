@@ -3,7 +3,6 @@ import { Box, Button, IconButton, Stack, Typography } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import MicIcon from "@mui/icons-material/Mic";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
-import theme from "../theme";
 
 // interface Position {
 //   x: number;
@@ -150,15 +149,14 @@ const Container = styled(Box, {
 
 const SelectionArea = styled(Box, {
   shouldForwardProp: (prop) =>
-    !["angle", "selectedIndex", "containsAudio"].includes(prop as string),
-})<{ angle: number; selectedIndex: number; containsAudio: boolean }>(
-  ({ theme, selectedIndex, containsAudio }) => {
-    // TODO
-    // Calculate angle per slice based on emotions length
-    const sliceAngle = 360 / emotionsData.length;
+    !["angle", "selectedIndex"].includes(prop as string),
+})<{ angle: number; selectedIndex: number }>(({ theme, selectedIndex }) => {
+  // TODO
+  // Calculate angle per slice based on emotions length
+  const sliceAngle = 360 / emotionsData.length;
 
-    // Generate the conic gradient for the selected slice
-    const conicGradient = `conic-gradient(
+  // Generate the conic gradient for the selected slice
+  const conicGradient = `conic-gradient(
     from ${270 + (selectedIndex + 2) * sliceAngle}deg,
     ${theme.palette.primary.main}20 0deg,
     ${theme.palette.primary.main}20 ${sliceAngle}deg,
@@ -166,42 +164,41 @@ const SelectionArea = styled(Box, {
     transparent 360deg
   )`;
 
-    // Generate the dividing lines gradients
-    const dividerLines = Array.from({ length: emotionsData.length })
-      .map((_, index) => {
-        const angle = (360 / emotionsData.length) * index;
-        return `linear-gradient(${angle}deg, transparent 49.5%, ${theme.palette.primary.main}20 49.5%, ${theme.palette.primary.main}20 50.5%, transparent 50.5%)`;
-      })
-      .join(",");
+  // // Generate the dividing lines gradients
+  // const dividerLines = Array.from({ length: emotionsData.length })
+  //   .map((_, index) => {
+  //     const angle = (360 / emotionsData.length) * index;
+  //     return `linear-gradient(${angle}deg, transparent 49.5%, ${theme.palette.primary.main}20 49.5%, ${theme.palette.primary.main}20 50.5%, transparent 50.5%)`;
+  //   })
+  //   .join(",");
 
-    return {
+  return {
+    position: "absolute",
+    width: "100%",
+    height: "100%",
+    borderRadius: "50%",
+    "&::before": {
+      content: '""',
       position: "absolute",
+      top: 0,
+      left: 0,
       width: "100%",
       height: "100%",
+      background: conicGradient,
       borderRadius: "50%",
-      "&::before": {
-        content: '""',
-        position: "absolute",
-        top: 0,
-        left: 0,
-        width: "100%",
-        height: "100%",
-        background: conicGradient,
-        borderRadius: "50%",
-      },
-      "&::after": {
-        content: '""',
-        position: "absolute",
-        top: 0,
-        left: 0,
-        width: "100%",
-        height: "100%",
-        background: dividerLines,
-        borderRadius: "50%",
-      },
-    };
-  }
-);
+    },
+    // "&::after": {
+    //   content: '""',
+    //   position: "absolute",
+    //   top: 0,
+    //   left: 0,
+    //   width: "100%",
+    //   height: "100%",
+    //   background: dividerLines,
+    //   borderRadius: "50%",
+    // },
+  };
+});
 
 const InnerCircle = styled(Box)(({ theme }) => ({
   position: "absolute",
@@ -217,26 +214,33 @@ const InnerCircle = styled(Box)(({ theme }) => ({
 }));
 
 const EmotionBox = styled(Box, {
-  shouldForwardProp: (prop) => prop !== "isSelected" && prop !== "angle",
-})<{ isSelected?: boolean; angle: number }>(({ theme, isSelected, angle }) => ({
-  position: "absolute",
-  width: 50,
-  height: 50,
-  borderRadius: "50%",
-  display: "flex",
-  justifyContent: "center",
-  alignItems: "center",
-  fontSize: 38,
-  transition: theme.transitions.create(["transform", "background-color"], {
-    duration: theme.transitions.duration.shorter,
-  }),
-  transform: `rotate(${angle}deg) translate(100px) rotate(-${angle}deg) ${
-    isSelected ? "scale(1.2)" : "scale(1)"
-  }`,
-  backgroundColor: isSelected ? theme.palette.action.selected : "transparent",
-  zIndex: 1,
-  cursor: "pointer",
-}));
+  shouldForwardProp: (prop) =>
+    prop !== "isSelected" && prop !== "angle" && prop !== "isAdded",
+})<{ isSelected?: boolean; angle: number; isAdded: boolean }>(
+  ({ theme, isSelected, angle, isAdded }) => ({
+    position: "absolute",
+    width: 50,
+    height: 50,
+    borderRadius: "50%",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    fontSize: 38,
+    transition: theme.transitions.create(["transform", "background-color"], {
+      duration: theme.transitions.duration.shorter,
+    }),
+    transform: `rotate(${angle}deg) translate(100px) rotate(-${angle}deg) ${
+      isSelected ? "scale(1.2)" : "scale(1)"
+    }`,
+    backgroundColor: isAdded
+      ? "#4caf50"
+      : isSelected
+      ? theme.palette.action.selected
+      : "transparent",
+    zIndex: 1,
+    cursor: "pointer",
+  })
+);
 
 const EmotionLabel = styled(Typography, {
   shouldForwardProp: (prop) => prop !== "isVisible",
@@ -332,8 +336,9 @@ const ChooseOptions: React.FC = () => {
   const [freezeSelectionChange, setFreezeSelectionChange] = useState(false);
   const hasAudio = emotions.filter((e) => e.audioUrl).length > 0;
   const [isTutorialMode, setIsTutorialMode] = useState(true);
-  const [showTutorialTooltip, setShowTutorialTooltip] = useState(false);
+  // const [showTutorialTooltip, setShowTutorialTooltip] = useState(false);
   const [tutorialStep, setTutorialStep] = useState(0);
+  const playableAudioRef = useRef<HTMLAudioElement | null>(null);
 
   const displayedEmotions = isTutorialMode
     ? emotions.filter((e) => e.name === "neutral")
@@ -342,7 +347,7 @@ const ChooseOptions: React.FC = () => {
   const handleMicClick = async () => {
     if (isTutorialMode && tutorialStep === 0) {
       setSelectedEmotion("neutral");
-      setShowTutorialTooltip(true);
+      // setShowTutorialTooltip(true);
       setTutorialStep(1);
     }
     if (!selectedEmotion) return;
@@ -408,7 +413,7 @@ const ChooseOptions: React.FC = () => {
   const onStopRecording = () => {
     if (isTutorialMode) {
       setIsTutorialMode(false);
-      setShowTutorialTooltip(false);
+      // setShowTutorialTooltip(false);
     }
     if (
       isRecording &&
@@ -462,6 +467,7 @@ const ChooseOptions: React.FC = () => {
       audio.onended = () => {
         setIsPlaying(false);
       };
+      playableAudioRef.current = audio; // TODO
       return;
     }
     if (isRecording) {
@@ -508,9 +514,6 @@ const ChooseOptions: React.FC = () => {
             cursor: "pointer",
           }}
           onClick={handleMicClick}
-          containsAudio={
-            !!emotions.find((e) => e.name === selectedEmotion)?.audioUrl
-          }
         />
         <InnerCircle
           onMouseMove={(e) => e.stopPropagation()}
@@ -665,6 +668,7 @@ const ChooseOptions: React.FC = () => {
               angle={emotion.angle}
               isSelected={selectedEmotion === emotion.name}
               onClick={onEmoSelection}
+              isAdded={!!emotion.audioUrl}
             >
               {emotion.emoji}
             </EmotionBox>
