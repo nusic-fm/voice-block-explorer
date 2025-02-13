@@ -164,6 +164,7 @@ const TtsSmartBox: React.FC<Props> = () => {
       <Box sx={{ display: "flex", justifyContent: "center", mt: 3 }}>
         <LoadingButton
           loading={isGenerating}
+          disabled={!text || !selectedVoice || !selectedEmotion}
           onClick={() => {
             if (generatedSpeechUrl) {
               setGeneratedSpeechUrl("");

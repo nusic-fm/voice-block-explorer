@@ -925,7 +925,7 @@ const ChooseOptions: React.FC<Props> = ({ onEncrypt, isConnected }) => {
                 }}
                 loading={isEncrypting}
               >
-                {isConnected ? "Encrypt" : "Connect Wallet & Encrypt"}
+                Deploy
               </LoadingButton>
             )}
           </Stack>

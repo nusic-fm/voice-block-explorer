@@ -132,7 +132,7 @@ const App: React.FC = () => {
               justifyContent={"center"}
               zIndex={99}
             >
-              {isPending && <Typography>Deploying NFT on Story...</Typography>}
+              {isPending && <Typography>Deploying on Story...</Typography>}
               {currentTab === "emotionWheel" && !isPending && (
                 <EmotionWheel onEncrypt={onEncrypt} isConnected={isConnected} />
               )}
