@@ -505,12 +505,14 @@ const ChooseOptions: React.FC<Props> = ({ onEncrypt, isConnected }) => {
       }}
     >
       <Header isRecording={isRecording}>
-        {isTutorialMode
-          ? "Let's start with a simple emotion"
-          : "Choose an emotion to Record your voice"}
+        Launch your AI Voice Agent onchain!
       </Header>
       <SubHeader>
-        {isRecording ? "Say the words into the mic" : "Click the mic to record"}
+        {isRecording
+          ? "Say the words into the mic"
+          : isTutorialMode
+          ? "Let's start with a neutral voice"
+          : "Choose an emotion to Record your voice"}
       </SubHeader>
 
       <Container
