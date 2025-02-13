@@ -102,6 +102,21 @@ const textToSpeech = async (
   return url;
 };
 
+const getEmojiFromEmotionId = (emotionId: string) => {
+  if (emotionId === "neutral") return "😐";
+  if (emotionId === "happy") return "😊";
+  if (emotionId === "sad") return "😢";
+  if (emotionId === "angry") return "😠";
+  if (emotionId === "fear") return "😨";
+  if (emotionId === "surprise") return "😲";
+  if (emotionId === "disgust") return "🤢";
+  if (emotionId === "trust") return "🤝";
+  if (emotionId === "anticipation") return "🤞";
+  if (emotionId === "surprise") return "😲";
+
+  return "🤔";
+};
+
 export {
   extractYoutubeId,
   getSpeakerAudioUrl,
@@ -110,4 +125,5 @@ export {
   getLongestDuration,
   getShortestDuration,
   textToSpeech,
+  getEmojiFromEmotionId,
 };

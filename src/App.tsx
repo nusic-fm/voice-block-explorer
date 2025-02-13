@@ -1,22 +1,19 @@
-import { Box } from "@mui/material";
+import { Box, Button } from "@mui/material";
 import KrakenEffect from "./components/KrakenEffect";
 import { useState } from "react";
 import EmotionSphere from "./components/EmotionSphere";
 import "./app.css";
-import { UserVoiceSample } from "./services/db/userVoice.service";
+import { createUserVoiceSample } from "./services/db/userVoice.service";
 import EmotionWheel from "./components/EmotionWheel";
 import TtsSmartBox from "./components/TtsSmartBox";
 import AnimatedTabs from "./components/AnimatedTabs";
+import { uploadUserVoiceSample } from "./services/storage/userUploads.storage";
+import { useAccount } from "wagmi";
 
-export type TwitterResult = {
-  id: string;
-  text: string;
-  videoId: string;
-  videoPreview: string;
-  videoUrl: string;
-  views: number;
-  likes: number;
-  username: string;
+export type VoiceEmotion = {
+  name: string;
+  userId: string;
+  emotionId: string;
 };
 
 const App: React.FC = () => {
@@ -25,78 +22,26 @@ const App: React.FC = () => {
   );
   const [isKrakenLoading, setIsKrakenLoading] = useState<boolean>(false);
   const [showEmotionSphere, setShowEmotionSphere] = useState<boolean>(false);
-  const [userVoiceInfo, setUserVoiceInfo] = useState<UserVoiceSample | null>(
-    null
-  );
+  const [isAudioUploading, setIsAudioUploading] = useState(false);
+  const { address, isConnected } = useAccount();
 
-  // const onGenerate = async (speakerPath: string) => {
-  //   setIsKrakenLoading(true);
-  //   const _voice: Voice = {
-  //     audioPath: speakerPath,
-  //     name: nftInfo?.name || "---",
-  //     symbol: nftInfo?.symbol || "---",
-  //     jobId: jobInfo.id,
-  //     audioUrl: getSpeakerAudioUrl(jobInfo.id, speakerPath),
-  //     isNFTDeployed: false,
-  //     yVid: selectedVideo?.videoId,
-  //     tweetTitle: selectedVideo?.text,
-  //     twitterUsername: selectedVideo?.username,
-  //     tweetId: selectedVideo?.id,
-  //     tweetVideoUrl: selectedVideo?.videoUrl,
-  //     emoji: nftInfo?.emoji || randomEmoji(),
-  //     duration: Math.floor(Math.random() * 60) + 60,
-  //   };
-  //   const voiceId = await createVoice(_voice);
-  //   setConversations((prev) => [
-  //     ...prev,
-  //     { isUser: false, content: `Creating your NFT...` },
-  //   ]);
-  //   try {
-  //     const res = await axios.post(
-  //       `${import.meta.env.VITE_AGENT_SERVER_URL}/deploy-nft`,
-  //       {
-  //         voice_name: nftInfo?.name,
-  //         nft_name: nftInfo?.name,
-  //         nft_symbol: nftInfo?.symbol,
-  //       }
-  //     );
-  //     const tx = res.data.tx;
-  //     if (tx) {
-  //       setSelectedVoice({ ..._voice, id: voiceId });
-  //       setConversations((prev) => [
-  //         ...prev,
-  //         {
-  //           isUser: false,
-  //           content: `Your NFT is deployed!`,
-  //           link: `${import.meta.env.VITE_BASESCAN_URL}/${tx}`,
-  //           isHighlight: true,
-  //         },
-  //         {
-  //           isUser: false,
-  //           content: `You can now do Text to Speech with your Audio Dataset! Type in something to hear it in the chosen voice!`,
-  //           isHighlight: true,
-  //         },
-  //       ]);
-  //       setShowTts(true);
-  //     } else {
-  //       setConversations((prev) => [
-  //         ...prev,
-  //         {
-  //           isUser: false,
-  //           content: `Error deploying your NFT, please try again later.`,
-  //         },
-  //       ]);
-  //     }
-  //   } catch (e) {
-  //     console.log(e);
-  //   } finally {
-  //     setIsKrakenLoading(false);
-  //     // setShowEmotionSphere(true);
-  //   }
-  // };
-
-  const onEncrypt = async () => {
-    // TODO: Audio Analyzer /encode-hash
+  const onEncrypt = async (emotionIds: string[], audioBlobs: Blob[]) => {
+    if (address && isConnected) {
+      // TODO: Audio Analyzer /encode-hash
+      setIsAudioUploading(true);
+      await createUserVoiceSample({
+        address,
+        emotionIds,
+        name: address.slice(address.length - 6),
+      });
+      emotionIds.forEach(async (emotionId, index) => {
+        await uploadUserVoiceSample(
+          audioBlobs[index],
+          `${address}/${emotionId}.mp3`
+        );
+      });
+      setIsAudioUploading(false);
+    }
   };
 
   return (
@@ -129,7 +74,9 @@ const App: React.FC = () => {
               justifyContent={"center"}
               zIndex={99}
             >
-              {currentTab === "emotionWheel" && <EmotionWheel />}
+              {currentTab === "emotionWheel" && (
+                <EmotionWheel onEncrypt={onEncrypt} isConnected={isConnected} />
+              )}
               {currentTab === "tts" && <TtsSmartBox />}
             </Box>
           </>

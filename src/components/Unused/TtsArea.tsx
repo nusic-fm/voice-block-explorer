@@ -11,9 +11,9 @@ import { useEffect, useState } from "react";
 import {
   createTtsConversionDoc,
   VoiceDoc,
-} from "../services/db/voices.service";
-import { textToSpeech } from "../helper";
-import AudioPlayer from "./AudioPlayer";
+} from "../../services/db/voices.service";
+import { textToSpeech } from "../../helper";
+import AudioPlayer from "../AudioPlayer";
 import axios from "axios";
 
 type Props = {

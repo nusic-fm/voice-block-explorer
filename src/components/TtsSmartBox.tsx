@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Box,
   TextField,
@@ -7,47 +7,42 @@ import {
   FormControl,
   InputLabel,
   Typography,
+  IconButton,
 } from "@mui/material";
-import { textToSpeech } from "../helper";
+import { getEmojiFromEmotionId, textToSpeech } from "../helper";
 import AudioPlayer from "./AudioPlayer";
 import { LoadingButton } from "@mui/lab";
+import { useCollectionData } from "react-firebase-hooks/firestore";
+import { collection } from "firebase/firestore";
+import { db } from "../services/firebase.service";
+import { UserVoiceSample } from "../services/db/userVoice.service";
+import PlayArrow from "@mui/icons-material/PlayArrow";
+import Pause from "@mui/icons-material/Pause";
+import { getUserSampleAudioUrl } from "../services/storage/userUploads.storage";
 
-const voiceEmotionsData: {
-  [key: string]: { id: string; emoji: string; audioUrl: string }[];
-} = {
-  adam: [
-    { id: "happy", emoji: "😊", audioUrl: "" },
-    { id: "sad", emoji: "😢", audioUrl: "" },
-    { id: "excited", emoji: "🎉", audioUrl: "" },
-  ],
-  logesh: [
-    { id: "neutral", emoji: "😐", audioUrl: "" },
-    { id: "angry", emoji: "😠", audioUrl: "" },
-    { id: "surprised", emoji: "😮", audioUrl: "" },
-  ],
-  zeeshan: [
-    { id: "happy", emoji: "😊", audioUrl: "" },
-    { id: "calm", emoji: "😌", audioUrl: "" },
-    { id: "energetic", emoji: "⚡", audioUrl: "" },
-  ],
-};
-
-const TtsSmartBox: React.FC = () => {
-  const [selectedVoice, setSelectedVoice] = useState(
-    Object.keys(voiceEmotionsData)[0]
-  );
-  const [selectedEmotion, setSelectedEmotion] = useState(
-    () => voiceEmotionsData[Object.keys(voiceEmotionsData)[0]][0].emoji
-  );
+type Props = {};
+const TtsSmartBox: React.FC<Props> = () => {
+  const [selectedVoice, setSelectedVoice] = useState("");
+  const [selectedUserVoice, setSelectedUserVoice] =
+    useState<UserVoiceSample | null>(null);
+  const [selectedEmotion, setSelectedEmotion] = useState("");
   const [text, setText] = useState("");
   const [generatedSpeechUrl, setGeneratedSpeechUrl] = useState<string>("");
   const [isGenerating, setIsGenerating] = useState(false);
+  const [voicesData] = useCollectionData(collection(db, "user-voice-samples"));
+  const [sourceAudioUrl, setSourceAudioUrl] = useState<string>("");
+  const [isPlayingSourceAudio, setIsPlayingSourceAudio] = useState(false);
+  const sourceAudioRef = useRef<HTMLAudioElement | null>(null);
 
   const handleSubmit = async () => {
-    const audioUrl = `https://firebasestorage.googleapis.com/v0/b/nusic-ai-agent.firebasestorage.app/o/tts-yt-audio%2FTrump_%20'I%20am%20your%20voice'%20(mp3cut%20(mp3cut.net).mp3?alt=media`;
-    // voiceEmotionsData[selectedVoice].find(
-    //   (e) => e.emoji === selectedEmotion
-    // )?.audioUrl;
+    if (!selectedUserVoice?.address) {
+      alert("Please select a voice");
+      return;
+    }
+    const audioUrl = getUserSampleAudioUrl(
+      selectedUserVoice.address,
+      selectedEmotion
+    );
     if (audioUrl) {
       setIsGenerating(true);
       try {
@@ -60,6 +55,14 @@ const TtsSmartBox: React.FC = () => {
       }
     }
   };
+
+  useEffect(() => {
+    if (selectedUserVoice && selectedEmotion) {
+      setSourceAudioUrl(
+        getUserSampleAudioUrl(selectedUserVoice.address, selectedEmotion)
+      );
+    }
+  }, [selectedUserVoice, selectedEmotion]);
 
   return (
     <Box
@@ -83,20 +86,24 @@ const TtsSmartBox: React.FC = () => {
             size="small"
             onChange={(e) => {
               setSelectedVoice(e.target.value);
-              setSelectedEmotion(
-                voiceEmotionsData[e.target.value as string][0].id
+              const userVoiceData = voicesData?.find(
+                (v) => v.name === e.target.value
               );
+              if (userVoiceData) {
+                setSelectedUserVoice(userVoiceData as UserVoiceSample);
+                setSelectedEmotion(userVoiceData.emotionIds[0] || "");
+              }
             }}
           >
-            {Object.keys(voiceEmotionsData).map((voiceId) => (
-              <MenuItem key={voiceId} value={voiceId}>
-                {voiceId}
+            {(voicesData as UserVoiceSample[])?.map((voiceEmotion) => (
+              <MenuItem key={voiceEmotion.address} value={voiceEmotion.name}>
+                {voiceEmotion.name}
               </MenuItem>
             ))}
           </Select>
         </FormControl>
 
-        <FormControl size="small" sx={{ width: "80px" }}>
+        <FormControl size="small" sx={{ width: "120px" }}>
           <InputLabel>Emotion</InputLabel>
           <Select
             value={selectedEmotion}
@@ -104,13 +111,33 @@ const TtsSmartBox: React.FC = () => {
             onChange={(e) => setSelectedEmotion(e.target.value)}
             size="small"
           >
-            {voiceEmotionsData[selectedVoice].map((emotion) => (
-              <MenuItem key={emotion.id} value={emotion.id}>
-                <span style={{ fontSize: "1.2rem" }}>{emotion.emoji}</span>
+            {selectedUserVoice?.emotionIds.map((emotionId) => (
+              <MenuItem key={emotionId} value={emotionId}>
+                <span>{getEmojiFromEmotionId(emotionId)}</span>
               </MenuItem>
             ))}
           </Select>
         </FormControl>
+        {sourceAudioUrl && (
+          <IconButton
+            onClick={() => {
+              if (isPlayingSourceAudio) {
+                sourceAudioRef.current?.pause();
+              } else {
+                const audioUrl = getUserSampleAudioUrl(
+                  selectedUserVoice?.address || "",
+                  selectedEmotion
+                );
+                const audio = new Audio(audioUrl);
+                audio.play();
+                sourceAudioRef.current = audio;
+              }
+              setIsPlayingSourceAudio(!isPlayingSourceAudio);
+            }}
+          >
+            {isPlayingSourceAudio ? <Pause /> : <PlayArrow />}
+          </IconButton>
+        )}
       </Box>
 
       {generatedSpeechUrl ? (

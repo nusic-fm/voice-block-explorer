@@ -1,8 +1,10 @@
 import React, { useState, useRef } from "react";
-import { Box, Button, IconButton, Stack, Typography } from "@mui/material";
+import { Box, IconButton, Stack, Typography } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import MicIcon from "@mui/icons-material/Mic";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
+import { LoadingButton } from "@mui/lab";
+import { ConnectKitButton } from "connectkit";
 
 // interface Position {
 //   x: number;
@@ -23,6 +25,7 @@ type Emotion = {
   examples: string[];
   audioUrl: string | null;
   angle: number;
+  audioBlob: Blob;
 };
 
 const emotionsData = getAngles([
@@ -320,8 +323,11 @@ const SubHeader = styled(Typography)(({ theme }) => ({
     to: { opacity: 1, transform: "translateY(0)" },
   },
 }));
-
-const ChooseOptions: React.FC = () => {
+type Props = {
+  onEncrypt: (emotionIds: string[], audioBlobs: Blob[]) => void;
+  isConnected: boolean;
+};
+const ChooseOptions: React.FC<Props> = ({ onEncrypt, isConnected }) => {
   const [emotions, setEmotions] = useState<Emotion[]>(emotionsData);
   const [selectedEmotion, setSelectedEmotion] = useState<string | null>(
     "neutral"
@@ -339,6 +345,7 @@ const ChooseOptions: React.FC = () => {
   // const [showTutorialTooltip, setShowTutorialTooltip] = useState(false);
   const [tutorialStep, setTutorialStep] = useState(0);
   const playableAudioRef = useRef<HTMLAudioElement | null>(null);
+  const [isEncrypting, setIsEncrypting] = useState(false);
 
   const displayedEmotions = isTutorialMode
     ? emotions.filter((e) => e.name === "neutral")
@@ -384,7 +391,7 @@ const ChooseOptions: React.FC = () => {
         setEmotions((prevEmotions) =>
           prevEmotions.map((emotion) =>
             emotion.name === selectedEmotion
-              ? { ...emotion, audioUrl }
+              ? { ...emotion, audioUrl, audioBlob }
               : emotion
           )
         );
@@ -820,22 +827,42 @@ const ChooseOptions: React.FC = () => {
               justifyContent: "center",
             }}
           >
-            <Button
-              variant="contained"
-              sx={{
-                backgroundColor: "rgba(0, 255, 255, 0.5)",
-                color: "white",
-                "&:hover": {
-                  backgroundColor: "rgba(0, 255, 255, 0.8)",
-                },
-                "&.Mui-disabled": {
-                  backgroundColor: "rgba(255, 255, 255, 0.1)",
-                  color: "rgba(255, 255, 255, 0.3)",
-                },
-              }}
-            >
-              Encrypt
-            </Button>
+            {!isConnected ? (
+              <ConnectKitButton />
+            ) : (
+              <LoadingButton
+                variant="contained"
+                sx={{
+                  backgroundColor: "rgba(0, 255, 255, 0.5)",
+                  color: "white",
+                  "&:hover": {
+                    backgroundColor: "rgba(0, 255, 255, 0.8)",
+                  },
+                  "&.Mui-disabled": {
+                    backgroundColor: "rgba(255, 255, 255, 0.1)",
+                    color: "rgba(255, 255, 255, 0.3)",
+                  },
+                }}
+                onClick={async () => {
+                  const emotionsIds: string[] = [];
+                  const audioBlobs: Blob[] = [];
+                  emotions.map((e) => {
+                    if (e.audioBlob) {
+                      emotionsIds.push(e.name);
+                      audioBlobs.push(e.audioBlob);
+                    }
+                  });
+                  setFreezeSelectionChange(true);
+                  setIsEncrypting(true);
+                  await onEncrypt(emotionsIds, audioBlobs);
+                  setIsEncrypting(false);
+                  setFreezeSelectionChange(false);
+                }}
+                loading={isEncrypting}
+              >
+                {isConnected ? "Encrypt" : "Connect Wallet & Encrypt"}
+              </LoadingButton>
+            )}
           </Stack>
         </Stack>
       )}

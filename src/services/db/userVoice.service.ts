@@ -1,9 +1,10 @@
-import { addDoc, collection } from "firebase/firestore";
+import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 import { db } from "../firebase.service";
 
 export type UserVoiceSample = {
-  userId: string;
-  emotionId: string; // Exmaple: "user-voices/${emotionId}_${id}.mp3"
+  address: string;
+  emotionIds: string[]; // Exmaple: "user-voices/${emotionId}_${id}.mp3"
+  name: string;
 };
 
 const COLLECTION_NAME = "user-voice-samples";
@@ -14,6 +15,7 @@ export const createUserVoiceSample = async (
   const userVoiceSampleRef = collection(db, COLLECTION_NAME);
   const docRef = await addDoc(userVoiceSampleRef, {
     ...userVoiceSample,
+    createdAt: serverTimestamp(),
   });
   return docRef.id;
 };
