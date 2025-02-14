@@ -26,7 +26,7 @@ const App: React.FC = () => {
   const [isAudioUploading, setIsAudioUploading] = useState(false);
   const { address, isConnected } = useAccount();
   const { deployNft, isPending, isSuccess, isError, hash } = useNFTContract({
-    contractAddress: "0x43a74a9EDC709c4bD370B65323514Bd0A82bF360",
+    contractAddress: import.meta.env.VITE_STORY_NFT_FACTORY_ADDRESS,
     abi: [
       {
         inputs: [
