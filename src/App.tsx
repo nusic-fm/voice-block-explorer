@@ -88,12 +88,11 @@ const App: React.FC = () => {
       // Make a tx to smart contract
       await deployNft(
         voiceName,
-        voiceName.split(" ").join("-"),
+        voiceName,
         voiceName.slice(0, 3).toUpperCase(),
         ""
       );
       setIsAudioUploading(false);
-      setCurrentTab("tts");
     }
   };
 
