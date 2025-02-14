@@ -8,6 +8,7 @@ import {
   InputLabel,
   Typography,
   IconButton,
+  CircularProgress,
 } from "@mui/material";
 import { getEmojiFromEmotionId, textToSpeech } from "../helper";
 import AudioPlayer from "./AudioPlayer";
@@ -31,6 +32,7 @@ const TtsSmartBox: React.FC<Props> = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [voicesData] = useCollectionData(collection(db, "user-voice-samples"));
   const [sourceAudioUrl, setSourceAudioUrl] = useState<string>("");
+  const [isLoadingSourceAudio, setIsLoadingSourceAudio] = useState(false);
   const [isPlayingSourceAudio, setIsPlayingSourceAudio] = useState(false);
   const sourceAudioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -56,11 +58,57 @@ const TtsSmartBox: React.FC<Props> = () => {
     }
   };
 
+  const handleSourceAudioPlayback = async () => {
+    if (isPlayingSourceAudio) {
+      sourceAudioRef.current?.pause();
+      setIsPlayingSourceAudio(false);
+    } else {
+      setIsLoadingSourceAudio(true);
+      try {
+        const audioUrl = getUserSampleAudioUrl(
+          selectedUserVoice?.address || "",
+          selectedEmotion
+        );
+        if (!sourceAudioRef.current) {
+          sourceAudioRef.current = new Audio(audioUrl);
+          sourceAudioRef.current.addEventListener("ended", () => {
+            setIsPlayingSourceAudio(false);
+          });
+        }
+        await sourceAudioRef.current.play();
+        setIsPlayingSourceAudio(true);
+      } catch (error) {
+        console.error("Error playing audio:", error);
+      } finally {
+        setIsLoadingSourceAudio(false);
+      }
+    }
+  };
+
   useEffect(() => {
     if (selectedUserVoice && selectedEmotion) {
       setSourceAudioUrl(
         getUserSampleAudioUrl(selectedUserVoice.address, selectedEmotion)
       );
+    }
+  }, [selectedUserVoice, selectedEmotion]);
+
+  // Clean up audio on unmount
+  useEffect(() => {
+    return () => {
+      if (sourceAudioRef.current) {
+        sourceAudioRef.current.pause();
+        sourceAudioRef.current = null;
+      }
+    };
+  }, []);
+
+  // Reset audio when source changes
+  useEffect(() => {
+    if (sourceAudioRef.current) {
+      sourceAudioRef.current.pause();
+      sourceAudioRef.current = null;
+      setIsPlayingSourceAudio(false);
     }
   }, [selectedUserVoice, selectedEmotion]);
 
@@ -95,15 +143,23 @@ const TtsSmartBox: React.FC<Props> = () => {
               }
             }}
           >
-            {(voicesData as UserVoiceSample[])?.map((voiceEmotion) => (
-              <MenuItem key={voiceEmotion.address} value={voiceEmotion.name}>
-                {voiceEmotion.name}
-              </MenuItem>
-            ))}
+            {voicesData?.length === 0 ? (
+              <MenuItem value="">No voices found</MenuItem>
+            ) : (
+              (voicesData as UserVoiceSample[])?.map((voiceEmotion) => (
+                <MenuItem key={voiceEmotion.address} value={voiceEmotion.name}>
+                  {voiceEmotion.name}
+                </MenuItem>
+              ))
+            )}
           </Select>
         </FormControl>
 
-        <FormControl size="small" sx={{ width: "120px" }}>
+        <FormControl
+          size="small"
+          sx={{ width: "120px" }}
+          disabled={!selectedVoice}
+        >
           <InputLabel>Emotion</InputLabel>
           <Select
             value={selectedEmotion}
@@ -120,22 +176,16 @@ const TtsSmartBox: React.FC<Props> = () => {
         </FormControl>
         {sourceAudioUrl && (
           <IconButton
-            onClick={() => {
-              if (isPlayingSourceAudio) {
-                sourceAudioRef.current?.pause();
-              } else {
-                const audioUrl = getUserSampleAudioUrl(
-                  selectedUserVoice?.address || "",
-                  selectedEmotion
-                );
-                const audio = new Audio(audioUrl);
-                audio.play();
-                sourceAudioRef.current = audio;
-              }
-              setIsPlayingSourceAudio(!isPlayingSourceAudio);
-            }}
+            onClick={handleSourceAudioPlayback}
+            disabled={isLoadingSourceAudio}
           >
-            {isPlayingSourceAudio ? <Pause /> : <PlayArrow />}
+            {isLoadingSourceAudio ? (
+              <CircularProgress size={24} />
+            ) : isPlayingSourceAudio ? (
+              <Pause />
+            ) : (
+              <PlayArrow />
+            )}
           </IconButton>
         )}
       </Box>

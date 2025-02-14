@@ -107,13 +107,12 @@ const getEmojiFromEmotionId = (emotionId: string) => {
   if (emotionId === "happy") return "😊";
   if (emotionId === "sad") return "😢";
   if (emotionId === "angry") return "😠";
-  if (emotionId === "fear") return "😨";
-  if (emotionId === "surprise") return "😲";
+  if (emotionId === "fearful") return "😨";
+  if (emotionId === "surprised") return "😲";
   if (emotionId === "disgust") return "🤢";
   if (emotionId === "trust") return "🤝";
   if (emotionId === "anticipation") return "🤞";
   if (emotionId === "excited") return "🤩";
-
 };
 
 export {
