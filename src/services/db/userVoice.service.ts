@@ -1,4 +1,4 @@
-import { doc, serverTimestamp, setDoc } from "firebase/firestore";
+import { doc, getDoc, serverTimestamp, setDoc } from "firebase/firestore";
 import { db } from "../firebase.service";
 
 export type UserVoiceSample = {
@@ -17,4 +17,10 @@ export const createUserVoiceSample = async (
     ...userVoiceSample,
     createdAt: serverTimestamp(),
   });
+};
+
+export const isVoiceNameUnique = async (voiceName: string) => {
+  const userVoiceSampleRef = doc(db, COLLECTION_NAME, voiceName);
+  const docSnap = await getDoc(userVoiceSampleRef);
+  return !docSnap.exists();
 };

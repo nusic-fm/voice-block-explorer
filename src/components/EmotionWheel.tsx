@@ -5,6 +5,7 @@ import MicIcon from "@mui/icons-material/Mic";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import { LoadingButton } from "@mui/lab";
 import { ConnectKitButton } from "connectkit";
+import { isVoiceNameUnique } from "../services/db/userVoice.service";
 
 // interface Position {
 //   x: number;
@@ -909,6 +910,13 @@ const ChooseOptions: React.FC<Props> = ({ onEncrypt, isConnected }) => {
                 onClick={async () => {
                   if (!voiceName) {
                     alert("Please enter a voice name");
+                    return;
+                  }
+                  const isUnique = await isVoiceNameUnique(voiceName);
+                  if (!isUnique) {
+                    alert(
+                      "Voice name already exists, please choose another one"
+                    );
                     return;
                   }
                   const emotionsIds: string[] = [];
