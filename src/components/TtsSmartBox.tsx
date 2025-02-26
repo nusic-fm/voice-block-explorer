@@ -24,6 +24,8 @@ import Pause from "@mui/icons-material/Pause";
 import { getUserSampleAudioUrl } from "../services/storage/userUploads.storage";
 import { useAccount } from "wagmi";
 import { ConnectKitButton } from "connectkit";
+import { createUserTTSRequest } from "../services/db/tts.service";
+import axios from "axios";
 
 type Props = {};
 const TtsSmartBox: React.FC<Props> = () => {
@@ -61,6 +63,22 @@ const TtsSmartBox: React.FC<Props> = () => {
       try {
         const speechUrl = await textToSpeech(text, audioUrl);
         setGeneratedSpeechUrl(speechUrl);
+        try {
+          const ttsDocId = await createUserTTSRequest({
+            voiceId: selectedVoice,
+            text,
+            address: address || "",
+          });
+          axios.post(
+            `${import.meta.env.VITE_AGENT_SERVER_URL}/store-tts-sample`,
+            {
+              ttsDocId,
+              audioUrl: speechUrl,
+            }
+          );
+        } catch (e) {
+          console.error("Error creating user TTS request:", e);
+        }
       } catch (e) {
         alert("Error");
       } finally {
